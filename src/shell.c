@@ -11,7 +11,7 @@
 int main()
 {
 	struct cmdline *l;
-	retoursTraitementCommande retourComande;
+	retoursTraitementCommande retourCommande;
 	int finShell = 0;
 
 	//Boucle dont on sort lorsque l'on quitte le Shell
@@ -35,9 +35,9 @@ int main()
 			//Si pas d'erreur, traitement de la commande
 			else
 			{
-				retourComande = traiter_commande(l);
+				retourCommande = traiter_commande(l);
 				
-				if(retourComande == FERMETURE_SHELL){
+				if(retourCommande == FERMETURE_SHELL){
 					finShell = 1;
 				}
 			}

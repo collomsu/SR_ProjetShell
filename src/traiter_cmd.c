@@ -15,7 +15,7 @@ retoursTraitementCommande traiter_commande(struct cmdline *l) {
     if(retour == COMMANDE_INTERNE_PAS_TROUVEE)
     {
       //On créé un processus fils qui va exécuter la commande en question
-      int pidFils = fork();
+      int pidFils = Fork();
 
       if(pidFils == 0)
       {
@@ -36,7 +36,25 @@ retoursTraitementCommande traiter_commande(struct cmdline *l) {
 
           perror("exec");
 
-          exit(0);
+          exit(-1);
+        }
+      }
+      else
+      {
+        int statutFinProcessusFils;
+
+        Waitpid(pidFils, &statutFinProcessusFils, 0);
+
+        //Si le processus fils ne s'est pas terminé correctement
+        if(WIFEXITED(statutFinProcessusFils) == 0)
+        {
+          //Si l'erreur n'est pas -1 (erreur déjà traitée) on ferme le shell
+          if(WEXITSTATUS(statutFinProcessusFils) != -1)
+          {
+            printf("Erreur fin de processus fils inconnue, fermeture du Shell.\n");
+
+            retour = FERMETURE_SHELL;
+          }
         }
       }
     }
