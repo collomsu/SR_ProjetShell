@@ -31,10 +31,14 @@ int main()
 				/* Syntax error, read another command */
 				printf("error: %s\n", l->err);
 			}
-			//Si pas d'erreur, analyse et traitement de la commande
+			//Si pas d'erreur, traitement de la commande
 			else
+				if(traiter_commande(l)){
+					printf("exit\n");
+					exit(0);
+				}
 			{
-				
+
 			}
 		}
 	}
