@@ -6,12 +6,12 @@
 #include <stdlib.h>
 #include "readcmd.h"
 #include "csapp.h"
-#include "traiter_cmd.c"
+#include "traiter_cmd.h"
 
 int main()
 {
 	struct cmdline *l;
-	int i, j;
+	retoursTraitementCommande retourComande;
 	int finShell = 0;
 
 	//Boucle dont on sort lorsque l'on quitte le Shell
@@ -34,7 +34,9 @@ int main()
 			//Si pas d'erreur, traitement de la commande
 			else
 			{
-				if(traiter_commande(l)){
+				retourComande = traiter_commande(l);
+				
+				if(retourComande == FERMETURE_SHELL){
 					finShell = 1;
 				}
 			}
