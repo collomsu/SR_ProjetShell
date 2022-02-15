@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "traiter_cmd.h": "c",
+        "readcmd.h": "c"
     }
 }
