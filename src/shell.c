@@ -33,16 +33,13 @@ int main()
 			}
 			//Si pas d'erreur, traitement de la commande
 			else
-				if(traiter_commande(l)){
-					printf("exit\n");
-					exit(0);
-				}
 			{
-
+				if(traiter_commande(l)){
+					finShell = 1;
+				}
 			}
 		}
 	}
 
-	printf("exit\n");
 	exit(0);
 }
