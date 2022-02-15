@@ -24,6 +24,7 @@ int main()
 		/* If input stream closed, normal termination */
 		if (l == NULL) {
 			finShell = 1;
+			printf("exit\n");
 		}
 		else
 		{
