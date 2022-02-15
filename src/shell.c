@@ -35,13 +35,11 @@ int main()
 			else
 			{
 				if(traiter_commande(l)){
-					printf("exit\n");
-					exit(0);
+					finShell = 1;
 				}
 			}
 		}
 	}
 
-	printf("exit\n");
 	exit(0);
 }
