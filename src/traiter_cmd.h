@@ -13,11 +13,13 @@
 typedef enum {
     NORMAL,
     COMMANDE_INTERNE_PAS_TROUVEE,
+    ERREUR_EXECUTION_COMMANDE,
     //Valeur indiquant que le Shell doit être fermé
     FERMETURE_SHELL
 } retoursTraitementCommande;
 
 retoursTraitementCommande traiter_commande(struct cmdline *l);
-retoursTraitementCommande traiter_commande_interne(char **commande);
+retoursTraitementCommande executer_commande_simple(char **commande, int fdIn, int fdOut);
+retoursTraitementCommande executer_commande_interne(char **commande);
 
 #endif
