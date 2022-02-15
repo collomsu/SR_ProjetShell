@@ -10,36 +10,35 @@
 
 int main()
 {
-	while (1) {
-		struct cmdline *l;
-		int i, j;
+	struct cmdline *l;
+	int i, j;
+	int finShell = 0;
 
+	//Boucle dont on sort lorsque l'on quitte le Shell
+	while (finShell == 0)
+	{
 		printf("shell> ");
+		//lecture et analyse (lexicale / syntaxique) de la commande
 		l = readcmd();
 
 		/* If input stream closed, normal termination */
-		if (!l) {
-			printf("exit\n");
-			exit(0);
+		if (l == NULL) {
+			finShell = 1;
 		}
-
-		if (l->err) {
-			/* Syntax error, read another command */
-			printf("error: %s\n", l->err);
-			continue;
-		}
-
-		if (l->in) printf("in: %s\n", l->in);
-		if (l->out) printf("out: %s\n", l->out);
-
-		/* Display each command of the pipe */
-		for (i=0; l->seq[i]!=0; i++) {
-			char **cmd = l->seq[i];
-			printf("seq[%d]: ", i);
-			for (j=0; cmd[j]!=0; j++) {
-				printf("%s ", cmd[j]);
+		else
+		{
+			if (l->err != NULL) {
+				/* Syntax error, read another command */
+				printf("error: %s\n", l->err);
 			}
-			printf("\n");
+			//Si pas d'erreur, analyse et traitement de la commande
+			else
+			{
+				
+			}
 		}
 	}
+
+	printf("exit\n");
+	exit(0);
 }
