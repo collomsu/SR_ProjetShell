@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "readcmd.h"
 #include "csapp.h"
-
+#include "traiter_cmd.c"
 
 int main()
 {

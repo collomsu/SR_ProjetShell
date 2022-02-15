@@ -1,8 +1,9 @@
-#include "readcmd.h"
+#include "traiter_cmd.h"
 
-int traiter_commande(cmdline *l) {
-  if(strcmp(l->seq[0][0]), "exit")
+int traiter_commande(struct cmdline *l) {
+  if(strcmp(l->seq[0][0], "exit")) {
     return 1;
-  else
+  } else {
     return 0;
+  }
 }

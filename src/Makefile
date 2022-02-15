@@ -8,7 +8,7 @@ CFLAGS=-Wall -g
 VPATH=src/
 
 # Note: -lnsl does not seem to work on Mac OS but will
-# probably be necessary on Solaris for linking network-related functions
+# probably be necessary on Solaris for linking network-related functions 
 #LIBS += -lsocket -lnsl -lrt
 LIBS+=-lpthread
 
@@ -26,3 +26,4 @@ all: shell
 
 clean:
 	rm -f shell *.o
+
