@@ -14,12 +14,27 @@ retoursTraitementCommande traiter_commande(struct cmdline *l) {
     //Si il y a une redirection de l'entrée
     if(l->in != NULL)
     {
-      fdEntreeCommande = open(l->in, O_RDONLY, 0);
+// *** Ajout d'une gestion des permissions sur redir entrée pour éviter un "bad file descriptor" (partie 5) ***
+      i = verification_permissions_fichier(l->in);
+      printf("%d\n", i);
+      if(i == -1){
+        printf("%s: File not found.\n", l->in);
+        return ERREUR_EXECUTION_COMMANDE;
+      } else if (i < 400) {
+        printf("%s: Permission denied.\n", l->in);
+      } else {
+// *** FIN ***
+        fdEntreeCommande = open(l->in, O_RDONLY, 0);
+      }
     }
 
     //Si il y a une redirection de la sortie
     if(l->out != NULL)
     {
+// *** Ajout d'une gestion des permissions sur redir sortie pour éviter un "bad file descriptor" (partie 5) ***
+      verification_permissions_fichier(l->out);
+      printf("alo ? \n");
+// *** FIN ***
       fdSortieCommande = open(l->out, O_WRONLY | O_CREAT, S_IRWXU);
     }
 
@@ -61,7 +76,7 @@ retoursTraitementCommande executer_commande_simple(char **commande, int fdIn, in
 
     //Ensuite, on contrôle si la commande n'est pas une commande interne au Shell
     retour = executer_commande_interne(commande);
-    
+
     //Si la commande n'est pas une commande interne
     if(retour == COMMANDE_INTERNE_PAS_TROUVEE)
     {
@@ -109,6 +124,30 @@ retoursTraitementCommande executer_commande_simple(char **commande, int fdIn, in
     }
   }
 
+  return retour;
+}
+
+int verification_permissions_fichier(char* fichier) {
+  int retour;
+  int fd[2], pidFils;
+  pipe(fd);
+  char sortie[3];
+  char* commande[5] = {"stat","-c","%a",fichier,NULL};
+  if((pidFils = Fork()) == 0) {
+    Dup2(fd[1], 1);
+    Dup2(fd[1], 2);
+    execvp(commande[0],commande);
+    retour = NORMAL;
+    exit(0);
+  } else {
+    read(fd[0], &sortie, 3);
+    if(sortie[0] == 's') {
+      return -1;
+    } else {
+      sscanf(sortie, "%d", &retour);
+    }
+    Waitpid(pidFils, NULL, 0);
+  }
   return retour;
 }
 

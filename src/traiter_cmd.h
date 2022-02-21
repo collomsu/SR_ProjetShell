@@ -17,7 +17,7 @@ typedef enum {
     //Valeur indiquant que le Shell doit être fermé
     FERMETURE_SHELL
 } retoursTraitementCommande;
-
+int verification_permissions_fichier(char* fichier);
 retoursTraitementCommande traiter_commande(struct cmdline *l);
 retoursTraitementCommande executer_commande_simple(char **commande, int fdIn, int fdOut);
 retoursTraitementCommande executer_commande_interne(char **commande);
