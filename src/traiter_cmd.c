@@ -16,7 +16,6 @@ retoursTraitementCommande traiter_commande(struct cmdline *l) {
     {
 // *** Ajout d'une gestion des permissions sur redir entrée pour éviter un "bad file descriptor" (partie 5) ***
       i = verification_permissions_fichier(l->in);
-      printf("%d\n", i);
       if(i == -1){
         printf("%s: File not found.\n", l->in);
         return ERREUR_EXECUTION_COMMANDE;
@@ -32,10 +31,13 @@ retoursTraitementCommande traiter_commande(struct cmdline *l) {
     if(l->out != NULL)
     {
 // *** Ajout d'une gestion des permissions sur redir sortie pour éviter un "bad file descriptor" (partie 5) ***
-      verification_permissions_fichier(l->out);
-      printf("alo ? \n");
+      i = verification_permissions_fichier(l->out);
+      if ((i >= 0 && i < 200) || (i >= 400 && i < 600)) {
+        printf("%s: Permission denied.\n", l->out);
+      } else {
 // *** FIN ***
-      fdSortieCommande = open(l->out, O_WRONLY | O_CREAT, S_IRWXU);
+        fdSortieCommande = open(l->out, O_WRONLY | O_CREAT, S_IRWXU);
+      }
     }
 
     retour = executer_commande_simple(l->seq[0], fdEntreeCommande, fdSortieCommande);
