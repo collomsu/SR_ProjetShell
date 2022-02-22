@@ -25,4 +25,4 @@ all: clean shell testpipes
 	$(CC) -o $@ $(LDFLAGS) $^ $(LIBS)
 
 clean:
-	rm -f shell *.o
+	rm -f shell testpipes *.o
