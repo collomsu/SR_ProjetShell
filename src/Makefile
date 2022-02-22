@@ -8,7 +8,7 @@ CFLAGS=-Wall -g
 VPATH=src/
 
 # Note: -lnsl does not seem to work on Mac OS but will
-# probably be necessary on Solaris for linking network-related functions 
+# probably be necessary on Solaris for linking network-related functions
 #LIBS += -lsocket -lnsl -lrt
 LIBS+=-lpthread
 
@@ -16,7 +16,7 @@ INCLUDE = readcmd.h csapp.h traiter_cmd.h
 OBJS = readcmd.o csapp.o traiter_cmd.o
 INCLDIR = -I.
 
-all: clean shell
+all: clean shell testpipes
 
 %.o: %.c $(INCLUDE)
 	$(CC) $(CFLAGS) $(INCLDIR) -c -o $@ $<
@@ -26,4 +26,3 @@ all: clean shell
 
 clean:
 	rm -f shell *.o
-

@@ -136,13 +136,17 @@ int verification_permissions_fichier(char* fichier) {
   char sortie[3];
   char* commande[5] = {"stat","-c","%a",fichier,NULL};
   if((pidFils = Fork()) == 0) {
+    close(fd[0]);
     Dup2(fd[1], 1);
     Dup2(fd[1], 2);
+    close(fd[1]);
     execvp(commande[0],commande);
     retour = NORMAL;
     exit(0);
   } else {
+    close(fd[1]);
     read(fd[0], &sortie, 3);
+    close(fd[0]);
     if(sortie[0] == 's') {
       return -1;
     } else {
