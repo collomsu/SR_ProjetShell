@@ -54,7 +54,8 @@ retoursTraitementCommande traiter_commande(struct cmdline *l) {
   }
   else
   {
-
+    executer_commande_pipe(l, 0, 0);
+    //retour = NORMAL;
   }
 
   return retour;
@@ -168,4 +169,39 @@ retoursTraitementCommande executer_commande_interne(char **commande)
   }
 
   return retour;
+}
+
+void executer_commande_pipe(struct cmdline *l, int pos, int fdIn) {
+  if(l->seq[pos+1] == NULL) {
+    if(fdIn != 0) {
+      if(Dup2(fdIn, 0) != -1) {
+        close(fdIn);
+      } else {
+        perror("Dup2");
+      }
+    }
+    execvp(l->seq[pos][0], l->seq[pos]);
+    perror("execvp");
+  } else {
+    int fd[2], pid;
+    if((pipe(fd) == -1) || ((pid = Fork()) == -1)) {
+      perror("Pipeline failed");
+    }
+    if(pid == 0) {
+      close(fd[0]);
+      if(Dup2(fdIn, 0) == -1)
+        perror("La redirection vers stdin a echoue.");
+      if(Dup2(fd[1], 1) == -1)
+        perror("La redirection vers stdout a echoue.");
+      else if(close(fd[1]) == -1)
+        perror("La fermeture du descripteur de fichier a echoue.");
+      else {
+        execvp(l->seq[pos][0], l->seq[pos]);
+        perror("execlp");
+      }
+    }
+    close(fd[1]);
+    close(fdIn);
+    executer_commande_pipe(l, pos+1, fd[0]);
+  }
 }

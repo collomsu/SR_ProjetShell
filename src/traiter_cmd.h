@@ -21,5 +21,6 @@ int verification_permissions_fichier(char* fichier);
 retoursTraitementCommande traiter_commande(struct cmdline *l);
 retoursTraitementCommande executer_commande_simple(char **commande, int fdIn, int fdOut);
 retoursTraitementCommande executer_commande_interne(char **commande);
+void executer_commande_pipe(struct cmdline *l, int pos, int fdIn);
 
 #endif
