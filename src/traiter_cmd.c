@@ -3,7 +3,7 @@
 retoursTraitementCommande traiter_commande(struct cmdline *l) {
   retoursTraitementCommande retour = NORMAL;
 
-  int i;
+  int i, pid;
 
   //Si la commande est une commande simple (avec redirection ou non)
   //Un processus fils est créé pour l'exécution de cette commande
@@ -54,8 +54,11 @@ retoursTraitementCommande traiter_commande(struct cmdline *l) {
   }
   else
   {
-    executer_commande_pipe(l, 0, 0);
-    //retour = NORMAL;
+    if((pid = Fork()) == 0) {
+      retour = executer_commande_pipe(l, 0, 0);
+    } else {
+      Waitpid(pid, NULL, 0);
+    }
   }
 
   return retour;
@@ -65,7 +68,7 @@ retoursTraitementCommande executer_commande_simple(char **commande, int fdIn, in
 {
   retoursTraitementCommande retour = NORMAL;
 
-  int i;
+  // int i;
 
   //On créé un processus fils qui va exécuter la commande en question
   //Ses entrées/sorties seront celles indiquées par les arguments de la fonction
@@ -83,26 +86,7 @@ retoursTraitementCommande executer_commande_simple(char **commande, int fdIn, in
     //Si la commande n'est pas une commande interne
     if(retour == COMMANDE_INTERNE_PAS_TROUVEE)
     {
-      int retourLancementCommande = execvp(commande[0], commande);
-
-      //Si la commande ne s'est pas lancée correctement
-      if(retourLancementCommande == -1)
-      {
-        i = 0;
-
-        printf("Erreur lors du lancement de la commande \"");
-        while (commande[i] != NULL)
-        {
-          printf("%s", commande[i]);
-
-          i = i + 1;
-        }
-        printf("\".\n");
-
-        perror("exec");
-
-        retour = ERREUR_EXECUTION_COMMANDE;
-      }
+      retour = execvp_correct(execvp(commande[0], commande), commande);
     }
 
     exit(retour);
@@ -131,7 +115,7 @@ retoursTraitementCommande executer_commande_simple(char **commande, int fdIn, in
 }
 
 int verification_permissions_fichier(char* fichier) {
-  int retour;
+  int permissions;
   int fd[2], pidFils;
   pipe(fd);
   char sortie[3];
@@ -142,7 +126,6 @@ int verification_permissions_fichier(char* fichier) {
     Dup2(fd[1], 2);
     close(fd[1]);
     execvp(commande[0],commande);
-    retour = NORMAL;
     exit(0);
   } else {
     close(fd[1]);
@@ -151,11 +134,11 @@ int verification_permissions_fichier(char* fichier) {
     if(sortie[0] == 's') {
       return -1;
     } else {
-      sscanf(sortie, "%d", &retour);
+      sscanf(sortie, "%d", &permissions);
     }
     Waitpid(pidFils, NULL, 0);
   }
-  return retour;
+  return permissions;
 }
 
 retoursTraitementCommande executer_commande_interne(char **commande)
@@ -171,17 +154,16 @@ retoursTraitementCommande executer_commande_interne(char **commande)
   return retour;
 }
 
-void executer_commande_pipe(struct cmdline *l, int pos, int fdIn) {
+retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int pos, int fdIn) {
+  retoursTraitementCommande retour = NORMAL;
   if(l->seq[pos+1] == NULL) {
     if(fdIn != 0) {
-      if(Dup2(fdIn, 0) != -1) {
+      if(Dup2(fdIn, 0) != -1)
         close(fdIn);
-      } else {
+      else
         perror("Dup2");
-      }
     }
-    execvp(l->seq[pos][0], l->seq[pos]);
-    perror("execvp");
+    return execvp_correct(execvp(l->seq[pos][0], l->seq[pos]), l->seq[pos]);
   } else {
     int fd[2], pid;
     if((pipe(fd) == -1) || ((pid = Fork()) == -1)) {
@@ -195,13 +177,38 @@ void executer_commande_pipe(struct cmdline *l, int pos, int fdIn) {
         perror("La redirection vers stdout a echoue.");
       else if(close(fd[1]) == -1)
         perror("La fermeture du descripteur de fichier a echoue.");
-      else {
-        execvp(l->seq[pos][0], l->seq[pos]);
-        perror("execlp");
-      }
+      else
+        retour = execvp_correct(execvp(l->seq[pos][0], l->seq[pos]), l->seq[pos]);
     }
     close(fd[1]);
     close(fdIn);
-    executer_commande_pipe(l, pos+1, fd[0]);
+    if(retour != NORMAL)
+      return retour;
+    else
+      retour = executer_commande_pipe(l, pos+1, fd[0]);
   }
+  return retour;
+}
+
+retoursTraitementCommande execvp_correct(int retourLancementCommande, char **commande) {
+  retoursTraitementCommande retour = NORMAL;
+  int i = 0;
+  //Si la commande ne s'est pas lancée correctement
+  if(retourLancementCommande == -1) {
+    i = 0;
+
+    printf("Erreur lors du lancement de la commande \"");
+    while (commande[i] != NULL)
+    {
+      printf("%s", commande[i]);
+
+      i = i + 1;
+    }
+    printf("\".\n");
+
+    perror("exec");
+
+    retour = ERREUR_EXECUTION_COMMANDE;
+  }
+  return retour;
 }
