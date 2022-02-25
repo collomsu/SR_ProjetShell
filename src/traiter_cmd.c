@@ -156,14 +156,41 @@ retoursTraitementCommande executer_commande_interne(char **commande)
 
 retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int pos, int fdIn) {
   retoursTraitementCommande retour = NORMAL;
-  if(l->seq[pos+1] == NULL) {
-    if(fdIn != 0) {
-      if(Dup2(fdIn, 0) != -1)
-        close(fdIn);
-      else
-        perror("Dup2");
+  //Si il y a une redirection de l'entrée
+  if(pos == 0 && l->in != NULL) {
+    int i = verification_permissions_fichier(l->in);
+    if(i == -1) {
+      printf("%s: File not found.\n", l->in);
+      return ERREUR_EXECUTION_COMMANDE;
+    } else if (i < 400) {
+      printf("%s: Permission denied.\n", l->in);
+    } else {
+      fdIn = open(l->in, O_RDONLY, 0);
     }
-    return execvp_correct(execvp(l->seq[pos][0], l->seq[pos]), l->seq[pos]);
+  }
+
+  if(l->seq[pos+1] == NULL) {
+    int fdOut = 1;
+    //Si il y a une redirection de la sortie
+    if(l->out != NULL) {
+      int i = verification_permissions_fichier(l->out);
+      if ((i >= 0 && i < 200) || (i >= 400 && i < 600)) {
+        printf("%s: Permission denied.\n", l->out);
+      } else {
+        fdOut = open(l->out, O_WRONLY | O_CREAT, S_IRWXU);
+      }
+    }
+
+    if(fdIn != 0) {
+      if(Dup2(fdIn, 0) != -1 && Dup2(fdOut, 1) != -1) {
+        close(fdIn);
+      } else {
+        perror("Dup2");
+      }
+    }
+    retour =  execvp_correct(execvp(l->seq[pos][0], l->seq[pos]), l->seq[pos]);
+    close(fdOut);
+    return retour;
   } else {
     int fd[2], pid;
     if((pipe(fd) == -1) || ((pid = Fork()) == -1)) {

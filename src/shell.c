@@ -36,7 +36,7 @@ int main()
 			else
 			{
 				retourCommande = traiter_commande(l);
-				
+
 				if(retourCommande == FERMETURE_SHELL){
 					finShell = 1;
 				}
