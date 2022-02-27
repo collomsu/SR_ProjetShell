@@ -52,6 +52,7 @@ retoursTraitementCommande traiter_commande(struct cmdline *l) {
       close(fdSortieCommande);
     }
   }
+  //Si la commande contient un/des pipes
   else
   {
     if((pid = Fork()) == 0) {
@@ -154,9 +155,10 @@ retoursTraitementCommande executer_commande_interne(char **commande)
   return retour;
 }
 
+//Le paramètre pos est le numéro (position) de la commande dans la série des commandes
 retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int pos, int fdIn) {
   retoursTraitementCommande retour = NORMAL;
-  //Si il y a une redirection de l'entrée
+  //Si il y a une redirection de l'entrée et que la commande actuellement exécutée est la première de la série
   if(pos == 0 && l->in != NULL) {
     int i = verification_permissions_fichier(l->in);
     if(i == -1) {
@@ -169,50 +171,83 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int pos, int
     }
   }
 
+  //Si c'est la dernière commande de la série
   if(l->seq[pos+1] == NULL) {
     int fdOut = 1;
     //Si il y a une redirection de la sortie
-    if(l->out != NULL) {
+    if(l->out != NULL)
+    {
+// *** Ajout d'une gestion des permissions sur redir sortie pour éviter un "bad file descriptor" (partie 5) ***
       int i = verification_permissions_fichier(l->out);
       if ((i >= 0 && i < 200) || (i >= 400 && i < 600)) {
         printf("%s: Permission denied.\n", l->out);
       } else {
+// *** FIN ***
         fdOut = open(l->out, O_WRONLY | O_CREAT, S_IRWXU);
       }
     }
 
-    if(fdIn != 0) {
-      if(Dup2(fdIn, 0) != -1 && Dup2(fdOut, 1) != -1) {
-        close(fdIn);
-      } else {
-        perror("Dup2");
-      }
+    retour = executer_commande_simple(l->seq[pos], fdIn, fdOut);
+
+    //Fermeture du pipe d'entrée
+    close(fdIn);
+
+    //Fermeture du fichier de sortie si il y a une redirection
+    if(fdOut != 1)
+    {
+      close(fdOut);
     }
-    retour =  execvp_correct(execvp(l->seq[pos][0], l->seq[pos]), l->seq[pos]);
-    close(fdOut);
+
     return retour;
   } else {
-    int fd[2], pid;
-    if((pipe(fd) == -1) || ((pid = Fork()) == -1)) {
+    int fd[2];
+
+    if(pipe(fd) == -1) {
       perror("Pipeline failed");
     }
-    if(pid == 0) {
+
+    int pidFilsProchaineCommande = Fork();
+
+    if(pidFilsProchaineCommande != 0)
+    {
+      int fdOut = fd[1];
       close(fd[0]);
-      if(Dup2(fdIn, 0) == -1)
-        perror("La redirection vers stdin a echoue.");
-      if(Dup2(fd[1], 1) == -1)
-        perror("La redirection vers stdout a echoue.");
-      else if(close(fd[1]) == -1)
-        perror("La fermeture du descripteur de fichier a echoue.");
+
+      retour = executer_commande_simple(l->seq[pos], fdIn, fdOut);
+
+      //Fermeture du pipe d'entrée
+      close(fdIn);
+
+      //Fermeture de la sortie
+      close(fdOut);
+
+
+      int statutFinProcessusFilsProchaineCommande;
+
+      Waitpid(pidFilsProchaineCommande, &statutFinProcessusFilsProchaineCommande, 0);
+
+      //Si le processus fils ne s'est pas terminé correctement
+      if(WIFEXITED(statutFinProcessusFilsProchaineCommande) == 0)
+      {
+        //On ferme le shell
+        retour = FERMETURE_SHELL;
+      }
+      //Si le processus fils s'est terminé correctement, on intercepte la valeur de son retour
       else
-        retour = execvp_correct(execvp(l->seq[pos][0], l->seq[pos]), l->seq[pos]);
+      {
+        //Regarder si nos codes d'erreurs ne peuvent pas entrer en colision avec les erreurs déjà existantes
+        retour = WEXITSTATUS(statutFinProcessusFilsProchaineCommande);
+      }
     }
-    close(fd[1]);
-    close(fdIn);
-    if(retour != NORMAL)
-      return retour;
     else
+    {
+      close(fd[1]);
+
+      //Exécution de la prochaine partie de la commande
       retour = executer_commande_pipe(l, pos+1, fd[0]);
+
+      close(fd[0]);
+    }
   }
   return retour;
 }
