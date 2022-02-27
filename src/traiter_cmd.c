@@ -3,7 +3,7 @@
 retoursTraitementCommande traiter_commande(struct cmdline *l) {
   retoursTraitementCommande retour = NORMAL;
 
-  int i, pid;
+  int i;
 
   //Si la commande est une commande simple (avec redirection ou non)
   //Un processus fils est créé pour l'exécution de cette commande
@@ -55,11 +55,7 @@ retoursTraitementCommande traiter_commande(struct cmdline *l) {
   //Si la commande contient un/des pipes
   else
   {
-    if((pid = Fork()) == 0) {
-      retour = executer_commande_pipe(l, 0, 0);
-    } else {
-      Waitpid(pid, NULL, 0);
-    }
+    retour = executer_commande_pipe(l, 0, 0);
   }
 
   return retour;
@@ -206,9 +202,9 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int pos, int
       perror("Pipeline failed");
     }
 
-    int pidFilsProchaineCommande = Fork();
+    int pidFilsCommandeExecutee = Fork();
 
-    if(pidFilsProchaineCommande != 0)
+    if(pidFilsCommandeExecutee == 0)
     {
       int fdOut = fd[1];
       close(fd[0]);
@@ -221,30 +217,60 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int pos, int
       //Fermeture de la sortie
       close(fdOut);
 
-
-      int statutFinProcessusFilsProchaineCommande;
-
-      Waitpid(pidFilsProchaineCommande, &statutFinProcessusFilsProchaineCommande, 0);
-
-      //Si le processus fils ne s'est pas terminé correctement
-      if(WIFEXITED(statutFinProcessusFilsProchaineCommande) == 0)
-      {
-        //On ferme le shell
-        retour = FERMETURE_SHELL;
-      }
-      //Si le processus fils s'est terminé correctement, on intercepte la valeur de son retour
-      else
-      {
-        //Regarder si nos codes d'erreurs ne peuvent pas entrer en colision avec les erreurs déjà existantes
-        retour = WEXITSTATUS(statutFinProcessusFilsProchaineCommande);
-      }
+      //Fin du processus
+      exit(retour);
     }
     else
     {
       close(fd[1]);
 
-      //Exécution de la prochaine partie de la commande
-      retour = executer_commande_pipe(l, pos+1, fd[0]);
+      //Exécution de la prochaine commande de la série si la précédente n'a pas échoué
+      int statutFinProcessusFilsCommandeExecutee;
+      int aCommandeEchoue = 0;
+
+      Waitpid(pidFilsCommandeExecutee, &statutFinProcessusFilsCommandeExecutee, 0);
+      retour = WEXITSTATUS(statutFinProcessusFilsCommandeExecutee);
+
+      //On considère qu'une commande à échoué si elle n'a pas pu être lancée ou
+      //si le processus fils s'est terminé correctement mais que son retour est "COMMANDE_INTERNE_PAS_TROUVEE"
+      //ou "ERREUR_EXECUTION_COMMANDE"
+      if(WIFEXITED(statutFinProcessusFilsCommandeExecutee) == 0)
+      {
+        aCommandeEchoue = 1;
+      }
+      else
+      {
+        if(retour == COMMANDE_INTERNE_PAS_TROUVEE || retour == ERREUR_EXECUTION_COMMANDE)
+        {
+          aCommandeEchoue = 1;
+        }
+      }
+
+      if(aCommandeEchoue == 1)
+      {
+        //On affiche une erreur et on ferme le shell
+        printf("Erreur lors de l'exécution de la commande \"");
+        afficherCommande(l->seq[pos]);
+        printf("\", fermeture du MiniShell.\n");
+
+        retour = FERMETURE_SHELL;
+      }
+      else
+      {
+        //Si le retour demande la fermeture du MiniShell alors que la commande n'est pas terminée, on prévient l'utilisateur
+        //et on ferme le MiniShell.
+        if(retour == FERMETURE_SHELL)
+        {
+          printf("L'exécution de la commande \"");
+          afficherCommande(l->seq[pos]);
+          printf("\" implique une fermeture du MiniShell alors qu'il reste des commandes à exécuter. Fermeture du MiniShell par sécurité.\n");
+        }
+        //Sinon, on exécute la prochaine commande
+        else
+        {
+          retour = executer_commande_pipe(l, pos+1, fd[0]);
+        }
+      }
 
       close(fd[0]);
     }
@@ -254,18 +280,12 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int pos, int
 
 retoursTraitementCommande execvp_correct(int retourLancementCommande, char **commande) {
   retoursTraitementCommande retour = NORMAL;
-  int i = 0;
   //Si la commande ne s'est pas lancée correctement
   if(retourLancementCommande == -1) {
-    i = 0;
-
     printf("Erreur lors du lancement de la commande \"");
-    while (commande[i] != NULL)
-    {
-      printf("%s", commande[i]);
 
-      i = i + 1;
-    }
+    afficherCommande(commande);
+    
     printf("\".\n");
 
     perror("exec");
@@ -273,4 +293,16 @@ retoursTraitementCommande execvp_correct(int retourLancementCommande, char **com
     retour = ERREUR_EXECUTION_COMMANDE;
   }
   return retour;
+}
+
+void afficherCommande(char **commande)
+{
+  int i = 0;
+
+  while (commande[i] != NULL)
+    {
+      printf("%s", commande[i]);
+
+      i = i + 1;
+    }
 }
