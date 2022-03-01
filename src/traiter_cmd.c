@@ -197,7 +197,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
   {
     retour = ATTENDRE_FIN_PROCESSUS_FOREGROUND;
   }
-  
+
   return retour;
 }
 
@@ -228,4 +228,12 @@ void afficherCommande(char **commande)
 
       i = i + 1;
     }
+}
+
+void handler_zombie(int sig) {
+  waitpid(-1, NULL, WNOHANG|WUNTRACED);
+}
+
+void gestion_zombie() {
+  Signal(SIGCHLD, handler_zombie);
 }
