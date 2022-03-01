@@ -16,7 +16,7 @@ INCLUDE = readcmd.h csapp.h traiter_cmd.h
 OBJS = readcmd.o csapp.o traiter_cmd.o
 INCLDIR = -I.
 
-all: clean shell testpipes
+all: clean shell loop
 
 %.o: %.c $(INCLUDE)
 	$(CC) $(CFLAGS) $(INCLDIR) -c -o $@ $<
