@@ -285,7 +285,7 @@ void afficherCommande(char **commande)
 }
 
 void handler_zombie(int sig) {
-  waitpid(-1, &status, WNOHANG|WUNTRACED);
+  waitpid(-1, NULL, WNOHANG|WUNTRACED);
 }
 
 void gestion_zombie() {
