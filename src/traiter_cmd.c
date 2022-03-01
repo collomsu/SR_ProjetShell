@@ -3,64 +3,36 @@
 retoursTraitementCommande traiter_commande(struct cmdline *l) {
   retoursTraitementCommande retour = NORMAL;
 
-  int i;
-
-  //Si la commande est une commande simple (avec redirection ou non)
-  //Un processus fils est créé pour l'exécution de cette commande
-  if(l->seq[1] == NULL)
+  //Si la commande doit être effectuée en arrière plan
+  if(l->bg != 0)
   {
-    int fdEntreeCommande = 0, fdSortieCommande = 1;
+    //Création d'un fils qui exécutera la commande en arrière plan
+    int pidFilsCommandeArrierePlan = Fork();
 
-    //Si il y a une redirection de l'entrée
-    if(l->in != NULL)
+    //Le père ne fait rien de plus, retour à l'interface du MiniShell
+    if(pidFilsCommandeArrierePlan != 0)
     {
-// *** Ajout d'une gestion des permissions sur redir entrée pour éviter un "bad file descriptor" (partie 5) ***
-      i = verification_permissions_fichier(l->in);
-      if(i == -1){
-        printf("%s: File not found.\n", l->in);
-        return ERREUR_EXECUTION_COMMANDE;
-      } else if (i < 400) {
-        printf("%s: Permission denied.\n", l->in);
-      } else {
-// *** FIN ***
-        fdEntreeCommande = open(l->in, O_RDONLY, 0);
-      }
+      
     }
-
-    //Si il y a une redirection de la sortie
-    if(l->out != NULL)
+    else
     {
-// *** Ajout d'une gestion des permissions sur redir sortie pour éviter un "bad file descriptor" (partie 5) ***
-      i = verification_permissions_fichier(l->out);
-      if ((i >= 0 && i < 200) || (i >= 400 && i < 600)) {
-        printf("%s: Permission denied.\n", l->out);
-      } else {
-// *** FIN ***
-        fdSortieCommande = open(l->out, O_WRONLY | O_CREAT, S_IRWXU);
-      }
-    }
-
-    retour = executer_commande_simple(l->seq[0], fdEntreeCommande, fdSortieCommande);
-
-    //Fermeture des fichiers de redirections si ils ont été créés
-    if(l->in != NULL)
-    {
-      close(fdEntreeCommande);
-    }
-    if(l->out != NULL)
-    {
-      close(fdSortieCommande);
+      l->bg = 0;
+      //Appel de la fonction d'exécution des commandes
+      retour = executer_commande_pipe(l, 0, 0);
+      exit(retour);
     }
   }
-  //Si la commande contient un/des pipes
+  //Si la commande ne doit pas être exécutée en arrière-plan
   else
   {
+    //Appel d'une fonction traitant les fonctions avec et sans pipe
     retour = executer_commande_pipe(l, 0, 0);
   }
 
   return retour;
 }
 
+//Fonction traitant une commande sans pipe
 retoursTraitementCommande executer_commande_simple(char **commande, int fdIn, int fdOut)
 {
   retoursTraitementCommande retour = NORMAL;
@@ -151,6 +123,8 @@ retoursTraitementCommande executer_commande_interne(char **commande)
   return retour;
 }
 
+//Fonction traitant une commande avec ou sans pipe
+//->Appel à la fonction executer_commande_simple
 //Le paramètre pos est le numéro (position) de la commande dans la série des commandes
 retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int pos, int fdIn) {
   retoursTraitementCommande retour = NORMAL;
