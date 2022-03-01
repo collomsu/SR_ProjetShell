@@ -98,6 +98,7 @@ static char **split_in_words(char *line)
 		case '&':
 			w = "&";
 			cur++;
+			break;
 		default:
 			/* Another word */
 			start = cur;
@@ -189,6 +190,7 @@ struct cmdline *readcmd(void)
 		static_cmdline = s = xmalloc(sizeof(struct cmdline));
 	else
 		freecmd(s);
+	s->bg = 0;
 	s->err = 0;
 	s->in = 0;
 	s->out = 0;
@@ -197,6 +199,18 @@ struct cmdline *readcmd(void)
 	i = 0;
 	while ((w = words[i++]) != 0) {
 		switch (w[0]) {
+		case '&':
+			/* Tricky : the word can only be "&" */
+			if(s->bg > 0) {
+				s->err = "only one & supported";
+				goto error;
+			}
+			if(words[i] != 0) {
+				s->err = "character found when nothing is expected";
+				goto error;
+			}
+			s->bg = 1;
+			break;
 		case '<':
 			/* Tricky : the word can only be "<" */
 			if (s->in) {
@@ -259,6 +273,7 @@ struct cmdline *readcmd(void)
 error:
 	while ((w = words[i++]) != 0) {
 		switch (w[0]) {
+		case '&':
 		case '<':
 		case '>':
 		case '|':
