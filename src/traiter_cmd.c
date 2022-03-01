@@ -1,5 +1,9 @@
 #include "traiter_cmd.h"
 
+//Variables externes du MiniShell
+extern int estCommandeForegroundEnCours;
+extern listeInt* pidsCommandeForeground;
+
 retoursTraitementCommande traiter_commande(struct cmdline *l) {
   retoursTraitementCommande retour = NORMAL;
 
@@ -25,8 +29,12 @@ retoursTraitementCommande traiter_commande(struct cmdline *l) {
   //Si la commande doit être exécutée au premier-plan
   else
   {
+    //Mise à 1 de la variable globale indiquant si une commande est déjà en train d'être exécutée en foreground.
+    estCommandeForegroundEnCours = 1;
+
     //Remise à zéro de la liste des pids des processus en foreground
-    remiseAZeroListeInt(pidsCommandeForeground);
+    DetruireListeInt(pidsCommandeForeground);
+    pidsCommandeForeground = NouvelleListeInt();
 
     //Appel d'une fonction traitant les fonctions avec et sans pipe
     retour = executer_commande_pipe(l);
@@ -167,7 +175,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
     else
     {
       //Insertion du PID du fils créé et à potentiellement attendre dans la liste
-      insererListeInt(pidsCommandeForeground, pidFilsCree);
+      AjouterElementListeInt(pidsCommandeForeground, pidFilsCree);
 
       if(aEteOuvertTuyauPrecedent == 1)
       {
@@ -228,12 +236,4 @@ void afficherCommande(char **commande)
 
       i = i + 1;
     }
-}
-
-void handler_zombie(int sig) {
-  waitpid(-1, NULL, WNOHANG|WUNTRACED);
-}
-
-void gestion_zombie() {
-  Signal(SIGCHLD, handler_zombie);
 }

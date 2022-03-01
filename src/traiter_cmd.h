@@ -8,6 +8,8 @@
 #include "errno.h"
 #include "readcmd.h"
 #include "csapp.h"
+#include "listeInt.h"
+#include "variablesExternes.h"
 
 //Enum utilisée pour gérer le retour du traitement de commandes
 typedef enum {
@@ -18,12 +20,6 @@ typedef enum {
     //Valeur indiquant que le Shell doit être fermé
     FERMETURE_SHELL
 } retoursTraitementCommande;
-
-struct elementListeInt{
-    int valeur;
-    struct elementListeInt *suivant;
-};
-typedef struct elementListeInt listeInt;
 
 int verification_permissions_fichier(char* fichier);
 retoursTraitementCommande traiter_commande(struct cmdline *l);
