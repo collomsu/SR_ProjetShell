@@ -6,21 +6,23 @@ retoursTraitementCommande traiter_commande(struct cmdline *l) {
   //Si la commande doit être effectuée en arrière plan
   if(l->bg != 0)
   {
-    //Création d'un fils qui exécutera la commande en arrière plan
-    int pidFilsCommandeArrierePlan = Fork();
-
-    //Le père ne fait rien de plus, retour à l'interface du MiniShell
-    if(pidFilsCommandeArrierePlan != 0)
-    {
-      
-    }
-    else
-    {
-      l->bg = 0;
-      //Appel de la fonction d'exécution des commandes
-      retour = executer_commande_pipe(l, 0, 0);
-      exit(retour);
-    }
+    // //Création d'un fils qui exécutera la commande en arrière plan
+    // int pidFilsCommandeArrierePlan = Fork();
+    //
+    // //Le père ne fait rien de plus, retour à l'interface du MiniShell
+    // if(pidFilsCommandeArrierePlan != 0)
+    // {
+    //
+    // }
+    // else
+    // {
+    //   l->bg = 0;
+    //   //Appel de la fonction d'exécution des commandes
+    //   retour = executer_commande_pipe(l, 0, 0);
+    //   exit(retour);
+    // }
+    retour = executer_commande_pipe(l, 0, 0);
+    exit(retour);
   }
   //Si la commande ne doit pas être exécutée en arrière-plan
   else
@@ -249,7 +251,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int pos, int
       close(fd[0]);
     }
   }
-  
+
   return retour;
 }
 
@@ -280,4 +282,12 @@ void afficherCommande(char **commande)
 
       i = i + 1;
     }
+}
+
+void handler_zombie(int sig) {
+  waitpid(-1, &status, WNOHANG|WUNTRACED);
+}
+
+void gestion_zombie() {
+  Signal(SIGCHLD, handler_zombie);
 }
