@@ -173,12 +173,11 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int pos, int
     //Si il y a une redirection de la sortie
     if(l->out != NULL)
     {
-// *** Ajout d'une gestion des permissions sur redir sortie pour éviter un "bad file descriptor" (partie 5) ***
+      // Ajout d'une gestion des permissions sur redir sortie pour éviter un "bad file descriptor" (partie 5)
       int i = verification_permissions_fichier(l->out);
       if ((i >= 0 && i < 200) || (i >= 400 && i < 600)) {
         printf("%s: Permission denied.\n", l->out);
       } else {
-// *** FIN ***
         fdOut = open(l->out, O_WRONLY | O_CREAT, S_IRWXU);
       }
     }
@@ -285,7 +284,7 @@ retoursTraitementCommande execvp_correct(int retourLancementCommande, char **com
     printf("Erreur lors du lancement de la commande \"");
 
     afficherCommande(commande);
-    
+
     printf("\".\n");
 
     perror("exec");
