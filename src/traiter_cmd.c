@@ -158,16 +158,17 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int pos, int
 
     retour = executer_commande_simple(l->seq[pos], fdIn, fdOut);
 
-    //Fermeture du pipe d'entrée
-    close(fdIn);
+    //Fermeture du pipe d'entrée (si ce n'est pas l'entrée standart)
+    if(fdIn != 0)
+    {
+      close(fdIn);
+    }
 
     //Fermeture du fichier de sortie si il y a une redirection
     if(fdOut != 1)
     {
       close(fdOut);
     }
-
-    return retour;
   } else {
     int fd[2];
 
@@ -248,6 +249,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int pos, int
       close(fd[0]);
     }
   }
+  
   return retour;
 }
 
