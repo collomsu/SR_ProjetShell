@@ -18,15 +18,18 @@ retoursTraitementCommande traiter_commande(struct cmdline *l) {
     {
       l->bg = 0;
       //Appel de la fonction d'exécution des commandes
-      retour = executer_commande_pipe(l, 0, 0);
+      retour = executer_commande_pipe(l);
       exit(retour);
     }
   }
-  //Si la commande ne doit pas être exécutée en arrière-plan
+  //Si la commande doit être exécutée au premier-plan
   else
   {
+    //Remise à zéro de la liste des pids des processus en foreground
+    remiseAZeroListeInt(pidsCommandeForeground);
+
     //Appel d'une fonction traitant les fonctions avec et sans pipe
-    retour = executer_commande_pipe(l, 0, 0);
+    retour = executer_commande_pipe(l);
   }
 
   return retour;
@@ -37,50 +40,21 @@ retoursTraitementCommande executer_commande_simple(char **commande, int fdIn, in
 {
   retoursTraitementCommande retour = NORMAL;
 
-  // int i;
+  //le processus est transformé en la commande passé en paramètre
+  //On commence par effectuer les redirections
+  Dup2(fdIn, 0);
+  Dup2(fdOut, 1);
 
-  //On créé un processus fils qui va exécuter la commande en question
-  //Ses entrées/sorties seront celles indiquées par les arguments de la fonction
-  int pidFils = Fork();
+  //Ensuite, on contrôle si la commande n'est pas une commande interne au Shell
+  retour = executer_commande_interne(commande);
 
-  if(pidFils == 0)
+  //Si la commande n'est pas une commande interne
+  if(retour == COMMANDE_INTERNE_PAS_TROUVEE)
   {
-    //On commence par effectuer les redirections
-    Dup2(fdIn, 0);
-    Dup2(fdOut, 1);
-
-    //Ensuite, on contrôle si la commande n'est pas une commande interne au Shell
-    retour = executer_commande_interne(commande);
-
-    //Si la commande n'est pas une commande interne
-    if(retour == COMMANDE_INTERNE_PAS_TROUVEE)
-    {
-      retour = execvp_correct(execvp(commande[0], commande), commande);
-    }
-
-    exit(retour);
-  }
-  else
-  {
-    int statutFinProcessusFils;
-
-    Waitpid(pidFils, &statutFinProcessusFils, 0);
-
-    //Si le processus fils ne s'est pas terminé correctement
-    if(WIFEXITED(statutFinProcessusFils) == 0)
-    {
-      //On ferme le shell
-      retour = FERMETURE_SHELL;
-    }
-    //Si le processus fils s'est terminé correctement, on intercepte la valeur de son retour
-    else
-    {
-      //Regarder si nos codes d'erreurs ne peuvent pas entrer en colision avec les erreurs déjà existantes
-      retour = WEXITSTATUS(statutFinProcessusFils);
-    }
+    retour = execvp_correct(execvp(commande[0], commande), commande);
   }
 
-  return retour;
+  exit(retour);
 }
 
 int verification_permissions_fichier(char* fichier) {
@@ -125,129 +99,103 @@ retoursTraitementCommande executer_commande_interne(char **commande)
 
 //Fonction traitant une commande avec ou sans pipe
 //->Appel à la fonction executer_commande_simple
-//Le paramètre pos est le numéro (position) de la commande dans la série des commandes
-retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int pos, int fdIn) {
+retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
   retoursTraitementCommande retour = NORMAL;
-  //Si il y a une redirection de l'entrée et que la commande actuellement exécutée est la première de la série
-  if(pos == 0 && l->in != NULL) {
-    int i = verification_permissions_fichier(l->in);
-    if(i == -1) {
-      printf("%s: File not found.\n", l->in);
-      return ERREUR_EXECUTION_COMMANDE;
-    } else if (i < 400) {
-      printf("%s: Permission denied.\n", l->in);
-    } else {
-      fdIn = open(l->in, O_RDONLY, 0);
-    }
-  }
 
-  //Si c'est la dernière commande de la série
-  if(l->seq[pos+1] == NULL) {
-    int fdOut = 1;
-    //Si il y a une redirection de la sortie
-    if(l->out != NULL)
+  //Création de chacun des fils des sous-commandes de la série de commandes et exécution
+  int pidFilsCree = 0;
+  int i = 0;
+  int fdIn = 0, fdOut = 1;
+  int fdAFermerPere = 0; //fd qui a été ouvert pour le fils précédent (si aEteOuvertTuyauPrecedent == 1) à fermer chez le père une fois que le fils actuel sera créé
+  int fd[2];
+  int aEteOuvertTuyau, aEteOuvertTuyauPrecedent = 0;
+
+  int permissions;
+
+  while (l->seq[i] != NULL)
+  {
+    aEteOuvertTuyau = 0;
+    
+    //Si le fils actuellement créé a comme sortie un pipe
+    if(l->seq[i + 1] != NULL)
     {
-      // Ajout d'une gestion des permissions sur redir sortie pour éviter un "bad file descriptor" (partie 5)
-      int i = verification_permissions_fichier(l->out);
-      if ((i >= 0 && i < 200) || (i >= 400 && i < 600)) {
-        printf("%s: Permission denied.\n", l->out);
-      } else {
-        fdOut = open(l->out, O_WRONLY | O_CREAT, S_IRWXU);
+      if(pipe(fd) == -1) {
+        perror("Pipeline failed");
       }
+
+      aEteOuvertTuyau = 1;
     }
 
-    retour = executer_commande_simple(l->seq[pos], fdIn, fdOut);
+    //Création du fils qui exécutera cette partie de la commande
+    pidFilsCree = Fork();
 
-    //Fermeture du pipe d'entrée (si ce n'est pas l'entrée standart)
-    if(fdIn != 0)
+    if(pidFilsCree == 0)
     {
-      close(fdIn);
-    }
+      //Si il y a une redirection de l'entrée et que le fils actuellement créé est le premier de la série
+      if(i == 0 && l->in != NULL) {
+        permissions = verification_permissions_fichier(l->in);
+        if(permissions == -1) {
+          printf("%s: File not found.\n", l->in);
+          return ERREUR_EXECUTION_COMMANDE;
+        } else if (permissions < 400) {
+          printf("%s: Permission denied.\n", l->in);
+        } else {
+          fdIn = open(l->in, O_RDONLY, 0);
+        }
+      }
+      //Si il y a une redirection de la sortie et que le fils actuellement créé est le dernier de la série
+      //(pas incompatible avec le cas précédent)
+      if(l->seq[i + 1] == NULL && l->out != NULL) {
+        // Ajout d'une gestion des permissions sur redir sortie pour éviter un "bad file descriptor" (partie 5)
+        int i = verification_permissions_fichier(l->out);
+        if ((i >= 0 && i < 200) || (i >= 400 && i < 600)) {
+          printf("%s: Permission denied.\n", l->out);
+        } else {
+          fdOut = open(l->out, O_WRONLY | O_CREAT, S_IRWXU);
+        }
+      }
 
-    //Fermeture du fichier de sortie si il y a une redirection
-    if(fdOut != 1)
-    {
-      close(fdOut);
-    }
-  } else {
-    int fd[2];
-
-    if(pipe(fd) == -1) {
-      perror("Pipeline failed");
-    }
-
-    int pidFilsCommandeExecutee = Fork();
-
-    if(pidFilsCommandeExecutee == 0)
-    {
-      int fdOut = fd[1];
-      close(fd[0]);
-
-      retour = executer_commande_simple(l->seq[pos], fdIn, fdOut);
-
-      //Fermeture du pipe d'entrée
-      close(fdIn);
-
-      //Fermeture de la sortie
-      close(fdOut);
-
-      //Fin du processus
-      exit(retour);
+      //Si le fils actuellement créé a comme sortie un pipe
+      if(aEteOuvertTuyau == 1)
+      {
+        fdOut = fd[1];
+        close(fd[0]);
+      }
+      
+      exit(executer_commande_simple(l->seq[i], fdIn, fdOut));
     }
     else
     {
-      close(fd[1]);
+      //Insertion du PID du fils créé et à potentiellement attendre dans la liste
+      insererListeInt(pidsCommandeForeground, pidFilsCree);
 
-      //Exécution de la prochaine commande de la série si la précédente n'a pas échoué
-      int statutFinProcessusFilsCommandeExecutee;
-      int aCommandeEchoue = 0;
-
-      Waitpid(pidFilsCommandeExecutee, &statutFinProcessusFilsCommandeExecutee, 0);
-      retour = WEXITSTATUS(statutFinProcessusFilsCommandeExecutee);
-
-      //On considère qu'une commande à échoué si elle n'a pas pu être lancée ou
-      //si le processus fils s'est terminé correctement mais que son retour est "COMMANDE_INTERNE_PAS_TROUVEE"
-      //ou "ERREUR_EXECUTION_COMMANDE"
-      if(WIFEXITED(statutFinProcessusFilsCommandeExecutee) == 0)
+      if(aEteOuvertTuyauPrecedent == 1)
       {
-        aCommandeEchoue = 1;
-      }
-      else
-      {
-        if(retour == COMMANDE_INTERNE_PAS_TROUVEE || retour == ERREUR_EXECUTION_COMMANDE)
-        {
-          aCommandeEchoue = 1;
-        }
+        close(fdAFermerPere);
+
+        aEteOuvertTuyauPrecedent = 0;
       }
 
-      if(aCommandeEchoue == 1)
+      //Préparation de l'entrée pour le prochain fils si son entrée est la sortie de l'une des commandes de la série (dans un tuyau)
+      if(aEteOuvertTuyau == 1)
       {
-        //On affiche une erreur et on ferme le shell
-        printf("Erreur lors de l'exécution de la commande \"");
-        afficherCommande(l->seq[pos]);
-        printf("\", fermeture du MiniShell.\n");
+        fdIn = fd[0];
+        close(fd[1]);
 
-        retour = FERMETURE_SHELL;
-      }
-      else
-      {
-        //Si le retour demande la fermeture du MiniShell alors que la commande n'est pas terminée, on prévient l'utilisateur
-        //et on ferme le MiniShell.
-        if(retour == FERMETURE_SHELL)
-        {
-          printf("L'exécution de la commande \"");
-          afficherCommande(l->seq[pos]);
-          printf("\" implique une fermeture du MiniShell alors qu'il reste des commandes à exécuter. Fermeture du MiniShell par sécurité.\n");
-        }
-        //Sinon, on exécute la prochaine commande
-        else
-        {
-          retour = executer_commande_pipe(l, pos+1, fd[0]);
-        }
+        fdAFermerPere = fdIn;
       }
 
-      close(fd[0]);
+      fdOut = 1;
     }
+
+    i = i + 1;
+  }
+
+  //Si la commande doit être effectuée en foreground, le retour indique que tous les processus fils créés pour l'occasion doivent être terminés avant de laisser
+  //la main à l'utilisateur
+  if(retour == NORMAL && l->bg == 0)
+  {
+    retour = ATTENDRE_FIN_PROCESSUS_FOREGROUND;
   }
   
   return retour;
