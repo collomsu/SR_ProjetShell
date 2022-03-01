@@ -45,7 +45,7 @@ static char *readline(void)
 		free(buf);
 		return NULL;
 	}
-	
+
 	if (feof(stdin)) { /* End of file (ctrl-d) */
 	    fflush(stdout);
 	    exit(0);
@@ -95,6 +95,9 @@ static char **split_in_words(char *line)
 			w = "|";
 			cur++;
 			break;
+		case '&':
+			w = "&";
+			cur++;
 		default:
 			/* Another word */
 			start = cur;
@@ -107,6 +110,7 @@ static char **split_in_words(char *line)
 				case '<':
 				case '>':
 				case '|':
+				case '&':
 					c = 0;
 					break;
 				default: ;
