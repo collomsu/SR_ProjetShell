@@ -1,1 +1,18 @@
-     12      12     114
+aMettreDansLeHandler.c
+csapp.c
+csapp.h
+listeInt.c
+listeInt.h
+loop
+loop.c
+Makefile
+readcmd.c
+readcmd.h
+shell
+shell.c
+test
+testpipes
+test.txt
+traiter_cmd.c
+traiter_cmd.h
+variablesExternes.h

@@ -25,25 +25,28 @@ void handler_SIGCHLD(int sig) {
 	//Si un processus a bien été intercepté (car WNOHANG n'est pas bloquant)
 	if(pidFilsTermine > 0)
 	{
+		//On regarde comment s'est terminé le processus
 		retoursTraitementCommande retourProcessusFilsTermine = WEXITSTATUS(statutFinProcessusFilsTermine);
 
-		int aCommandeEchoue = 0;
+		int processusAEuProblemeDExecution = 0;
 
-		//Si le processus fils a s'est terminé par une erreur
+		//Si le processus fils ne s'est pas terminé correctement
 		if(WIFEXITED(statutFinProcessusFilsTermine) == 0)
 		{
-			aCommandeEchoue = 1;
+			processusAEuProblemeDExecution = 1;
 		}
+		//Si le processus fils s'est terminé correctement mais que le signal émis n'était pas le signal normal
 		else
 		{
+			//Si le signal émis indique qu'il y a eu des problèmes lors de l'exécution de la commande
 			if(retourProcessusFilsTermine == COMMANDE_INTERNE_PAS_TROUVEE
 			|| retourProcessusFilsTermine == ERREUR_EXECUTION_COMMANDE)
 			{
-				aCommandeEchoue = 1;
+				processusAEuProblemeDExecution = 1;
 			}
 			else
 			{
-				//Si le processus terminé implique la fermeture du MiniShell
+				//Si le signal émis indique de fermer le MiniShell
 				if(retourProcessusFilsTermine == FERMETURE_SHELL)
 				{
 					finShell = 1;
@@ -52,24 +55,26 @@ void handler_SIGCHLD(int sig) {
 			}
 		}
 
-		//Si le processus terminé souffre d'une erreur, on affiche une erreur à l'utilisateur et on ferme le shell
-		if(aCommandeEchoue == 1)
+		//Si le processus terminé a eu des problèmes d'exécution
+		//Pour le moment, l'action associée à cette situation n'est pas décidée.
+		//->Là on ne fait rien de spécial mais deux comportements étaient envisagés:
+		//  -Afficher une erreur à l'utilisateur et fermer le shell.
+		//  -Envoyer un signal pour kill les processus foreground encore en cours d'exécution.
+		if(processusAEuProblemeDExecution == 1)
 		{
-			printf("Erreur lors de l'exécution de la commande, fermeture du MiniShell.\n");
+			/*printf("Erreur lors de l'exécution de la commande, fermeture du MiniShell.\n");
 
-			finShell = 1;
+			finShell = 1;*/
 		}
-		//Sinon, on retire de la liste des PID foreground le pid du processus qui vient de se terminer
-		else
-		{
-			SupprimerElementListeInt(pidsCommandeForeground, pidFilsTermine);
+
+		//Enfin, on retire de la liste des PID foreground le pid du processus qui vient de se terminer
+		SupprimerElementListeInt(pidsCommandeForeground, pidFilsTermine);
 			
-			if(EstListeIntVide(pidsCommandeForeground))
-			{
-				estCommandeForegroundEnCours = 0;
-			}
+		if(EstListeIntVide(pidsCommandeForeground))
+		{
+			estCommandeForegroundEnCours = 0;
 		}
-	}
+}
 }
 
 void gestion_SIGCHLD() {

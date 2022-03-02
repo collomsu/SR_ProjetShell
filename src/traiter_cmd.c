@@ -199,13 +199,6 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
     i = i + 1;
   }
 
-  //Si la commande doit être effectuée en foreground, le retour indique que tous les processus fils créés pour l'occasion doivent être terminés avant de laisser
-  //la main à l'utilisateur
-  if(retour == NORMAL && l->bg == 0)
-  {
-    retour = ATTENDRE_FIN_PROCESSUS_FOREGROUND;
-  }
-
   return retour;
 }
 
