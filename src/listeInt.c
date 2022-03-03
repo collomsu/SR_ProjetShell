@@ -74,32 +74,35 @@ int SupprimerElementListeInt(listeInt *laListe, int valeur)
 {
    int retour = -1;
 
-   struct elementListeInt *ElementADetruire = NULL;
+   if(!EstListeIntVide(laListe))
+   {
+      struct elementListeInt *ElementADetruire = NULL;
 
-   if(laListe->tete->valeur == valeur)
-   {
-      ElementADetruire = laListe->tete;
-      laListe->tete = laListe->tete->suivant;
-      DetruireElementListeInt(ElementADetruire);
-      retour = 0;
-   }
-   else
-   {
-      struct elementListeInt *elementParcoursListe = laListe->tete;
-      
-      while(retour == -1 && elementParcoursListe->suivant != NULL)
+      if(laListe->tete->valeur == valeur)
       {
-         //Si on a trouvé notre variable
-         if(laListe->tete->suivant->valeur == valeur)
+         ElementADetruire = laListe->tete;
+         laListe->tete = laListe->tete->suivant;
+         DetruireElementListeInt(ElementADetruire);
+         retour = 0;
+      }
+      else
+      {
+         struct elementListeInt *elementParcoursListe = laListe->tete;
+         
+         while(retour == -1 && elementParcoursListe->suivant != NULL)
          {
-            ElementADetruire = elementParcoursListe->suivant;
-            elementParcoursListe->suivant = elementParcoursListe->suivant->suivant;
-            DetruireElementListeInt(ElementADetruire);
-            retour = 0;
-         }
-         else
-         {
-            elementParcoursListe = elementParcoursListe->suivant;
+            //Si on a trouvé notre variable
+            if(laListe->tete->suivant->valeur == valeur)
+            {
+               ElementADetruire = elementParcoursListe->suivant;
+               elementParcoursListe->suivant = elementParcoursListe->suivant->suivant;
+               DetruireElementListeInt(ElementADetruire);
+               retour = 0;
+            }
+            else
+            {
+               elementParcoursListe = elementParcoursListe->suivant;
+            }
          }
       }
    }

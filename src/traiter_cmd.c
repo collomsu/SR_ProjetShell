@@ -7,27 +7,8 @@ extern listeInt* pidsCommandeForeground;
 retoursTraitementCommande traiter_commande(struct cmdline *l) {
   retoursTraitementCommande retour = NORMAL;
 
-  //Si la commande doit être effectuée en arrière plan
-  if(l->bg != 0)
-  {
-    //Création d'un fils qui exécutera la commande en arrière plan
-    int pidFilsCommandeArrierePlan = Fork();
-
-    //Le père ne fait rien de plus, retour à l'interface du MiniShell
-    if(pidFilsCommandeArrierePlan != 0)
-    {
-      
-    }
-    else
-    {
-      l->bg = 0;
-      //Appel de la fonction d'exécution des commandes
-      retour = executer_commande_pipe(l);
-      exit(retour);
-    }
-  }
-  //Si la commande doit être exécutée au premier-plan
-  else
+  //Si la commande doit être effectuée au premier plan
+  if(l->bg == 0)
   {
     //Mise à 1 de la variable globale indiquant si une commande est déjà en train d'être exécutée en foreground.
     estCommandeForegroundEnCours = 1;
@@ -35,10 +16,10 @@ retoursTraitementCommande traiter_commande(struct cmdline *l) {
     //Remise à zéro de la liste des pids des processus en foreground
     DetruireListeInt(pidsCommandeForeground);
     pidsCommandeForeground = NouvelleListeInt();
-
-    //Appel d'une fonction traitant les fonctions avec et sans pipe
-    retour = executer_commande_pipe(l);
   }
+
+  //Appel d'une fonction traitant la commande avec et sans pipe
+  retour = executer_commande_pipe(l);
 
   return retour;
 }
@@ -174,8 +155,11 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
     }
     else
     {
-      //Insertion du PID du fils créé et à potentiellement attendre dans la liste
-      AjouterElementListeInt(pidsCommandeForeground, pidFilsCree);
+      //Insertion du PID du fils créé dans la liste si la commande est en foreground
+      if(l->bg == 0)
+      {
+        AjouterElementListeInt(pidsCommandeForeground, pidFilsCree);
+      }
 
       if(aEteOuvertTuyauPrecedent == 1)
       {

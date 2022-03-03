@@ -15,7 +15,9 @@ int finShell = 0;
 extern int estCommandeForegroundEnCours;
 extern listeInt* pidsCommandeForeground;
 
-//Fonctions utilisées pour la gestions des processus fils du MiniShell terminés
+//Fonction utilisée pour la gestions des processus fils du MiniShell terminés (pour éviter l'invasion des zombis mais
+//a d'autres utilités, nottament au niveau de l'affichage)
+//Ce handler est mis en place via un appel à la fonction "gestion_SIGCHLD" au dessous
 void handler_SIGCHLD(int sig) {
 	//Récupération du PID du processus fils terminé et de son retour
 	int statutFinProcessusFilsTermine;
@@ -67,20 +69,39 @@ void handler_SIGCHLD(int sig) {
 			finShell = 1;*/
 		}
 
+
+		//Variable permettant de savoir si le processus terminé était un processus background ou foreground
+		int etaitProcessusTermineForeground = 0;
+
 		//Enfin, on retire de la liste des PID foreground le pid du processus qui vient de se terminer
-		SupprimerElementListeInt(pidsCommandeForeground, pidFilsTermine);
+		if(SupprimerElementListeInt(pidsCommandeForeground, pidFilsTermine) == 0)
+		{
+			etaitProcessusTermineForeground = 1;
+		}
 			
 		if(EstListeIntVide(pidsCommandeForeground))
 		{
 			estCommandeForegroundEnCours = 0;
 		}
-}
+
+		//Si il n'y a pas de processus en foreground et que le processus terminé était en background (il a pu perturber l'affichage)
+		//->affichage à l'utilisateur que le MiniShell est disponible
+		if(estCommandeForegroundEnCours == 0 && etaitProcessusTermineForeground == 0)
+		{
+			printf("shell> ");
+			fflush(stdout);
+		}
+		//On n'effectue cet affichage que lorsque le processus terminé était en background pour éviter d'afficher "shell> "
+		//plusieurs fois de suite à l'utilisateur (le message est affiché à la fin de chaque processus foreground, voir main())
+	}
 }
 
+//Fonction de mise en place du handler handler_SIGCHLD permettant, entre autres, d'éviter l'invasion des zombis.
 void gestion_SIGCHLD() {
   Signal(SIGCHLD, handler_SIGCHLD);
 }
 
+//Fonction main du MiniShell
 int main()
 {
 	//Initialisation des variables externes
@@ -101,7 +122,11 @@ int main()
 
 		if(finShell == 0)
 		{
+			//Affichage à l'utilisateur que le MiniShell est disponible
 			printf("shell> ");
+			fflush(stdout);
+			//Cet affichage est effectué à chaque lancement du MiniShell + à chaque fin de processus foreground
+
 			//lecture et analyse (lexicale / syntaxique) de la commande
 			l = readcmd();
 
