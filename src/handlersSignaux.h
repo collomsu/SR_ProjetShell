@@ -22,13 +22,13 @@ void handler_SIGCHLD(int sig);
 //Handler appelé lorsqu'un signal SIGINT (ctrl + c, terminaison du processus au premier plan) est reçu.
 //Si un/des processus sont actuellement en cours d'exécution au premier plan, ce signal leur est envoyé
 //Si il n'y a aucun processus en cours d'exécution au premier plan, rien de spécial ne se produit.
-//Un retour à la ligne est imprimmé en fin de fonction pour garder un affichage propre
+//Un retour à la ligne et "shell> " sont imprimmés en fin de fonction pour garder un affichage propre.
 void handler_SIGINT(int sig);
 
 //Handler appelé lorsqu'un signal SIGTSTP (ctrl + z, pause du processus au premier plan) est reçu.
 //Si un/des processus sont actuellement en cours d'exécution au premier plan, ce signal leur est envoyé
 //Si il n'y a aucun processus en cours d'exécution au premier plan, rien de spécial ne se produit.
-//Un retour à la ligne est imprimmé en fin de fonction pour garder un affichage propre
+//Un retour à la ligne et "shell> " sont imprimmés en fin de fonction pour garder un affichage propre.
 void handler_SIGTSTP(int sig);
 
 

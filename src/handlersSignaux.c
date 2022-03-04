@@ -103,8 +103,10 @@ void handler_SIGINT(int sig) {
 		ElementParcoursPidsProcessusForeground = ElementParcoursPidsProcessusForeground->suivant;
 	}
 
-	//On imprime un retour à la ligne (pour la propreté de l'affichage)
+	//On imprime un retour à la ligne et "shell> " (pour la propreté de l'affichage)
 	printf("\n");
+	printf("shell> ");
+	fflush(stdout);
 }
 
 void handler_SIGTSTP(int sig) {
@@ -123,8 +125,10 @@ void handler_SIGTSTP(int sig) {
 		ElementParcoursPidsProcessusForeground = ElementParcoursPidsProcessusForeground->suivant;
 	}
 
-	//On imprime un retour à la ligne (pour la propreté de l'affichage)
+	//On imprime un retour à la ligne et "shell> " (pour la propreté de l'affichage)
 	printf("\n");
+	printf("shell> ");
+	fflush(stdout);
 }
 
 
@@ -140,5 +144,5 @@ void setup_handler_SIGINT() {
 }
 
 void setup_handler_SIGTSTP() {
-  Signal(SIGINT, handler_SIGTSTP);
+  Signal(SIGTSTP, handler_SIGTSTP);
 }
