@@ -1,0 +1,6 @@
+#
+# test_exit.txt - Tester la première des deux commandes permettant de fermer le MiniShell (quit).
+# Ces deux commandes sont des commandes intégrées au MiniShell.
+#
+quit
+WAIT

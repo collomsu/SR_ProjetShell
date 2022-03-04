@@ -1,0 +1,4 @@
+#
+# test_commande_inexistante.txt - Execution d'une commande dans le nom n'est pas reconnu par la variable d'environnement PATH.
+#
+dqkiofiuqghhqh

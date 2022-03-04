@@ -1,0 +1,4 @@
+#
+# test_commande.txt - Exécuter une commande sans argument.
+#
+ls
