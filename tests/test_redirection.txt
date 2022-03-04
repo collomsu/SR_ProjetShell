@@ -1,0 +1,8 @@
+#
+# test_redirection.txt - Exécute deux commande :
+# 1ère commande : Exécution de 'ls' avec une redirection vers un fichier de sortie non créer.
+# Le fichier va donc être créer remplie avec le résultat de la commande 'ls'.
+# 2ème commande : Exécution de 'cat' avec une redirection en entrée du fichier redirection_sortie.txt.
+#
+ls > redirection_sortie.txt
+cat < redirection_sortie.txt
