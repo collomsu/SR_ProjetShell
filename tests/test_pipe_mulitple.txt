@@ -1,0 +1,5 @@
+#
+# test_pipe_multiple - Exécuter plusieurs commandes liées par des pipes.
+# Ces commandes sont des commandes externes au shell.
+#
+ls | uniq | grep M | grep M | grep M | grep M | grep M | grep M | grep M | grep M 

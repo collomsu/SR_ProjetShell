@@ -1,0 +1,7 @@
+#
+# test_execution_background.txt - Exécute une petite boucle avec le paramètre '&' pour lancer le processus en background.
+# Exeuction de la commande 'ps' avant et après le lancement de la boucle infinie pour bien vérifier que le processus a été créer.
+#
+ps
+./src/loop_100 &
+ps
