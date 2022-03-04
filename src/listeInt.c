@@ -92,7 +92,7 @@ int SupprimerElementListeInt(listeInt *laListe, int valeur)
          while(retour == -1 && elementParcoursListe->suivant != NULL)
          {
             //Si on a trouvé notre variable
-            if(laListe->tete->suivant->valeur == valeur)
+            if(elementParcoursListe->suivant->valeur == valeur)
             {
                ElementADetruire = elementParcoursListe->suivant;
                elementParcoursListe->suivant = elementParcoursListe->suivant->suivant;

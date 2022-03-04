@@ -69,7 +69,6 @@ void handler_SIGCHLD(int sig) {
 			finShell = 1;*/
 		}
 
-
 		//Variable permettant de savoir si le processus terminé était un processus background ou foreground
 		int etaitProcessusTermineForeground = 0;
 
@@ -118,7 +117,10 @@ int main()
 	while (finShell == 0)
 	{
 		//Attente que la commande en foreground soit terminée
-		while(estCommandeForegroundEnCours && finShell == 0);
+		while(estCommandeForegroundEnCours && finShell == 0)
+		{
+			
+		}
 
 		if(finShell == 0)
 		{

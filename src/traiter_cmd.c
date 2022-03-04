@@ -7,8 +7,10 @@ extern listeInt* pidsCommandeForeground;
 retoursTraitementCommande traiter_commande(struct cmdline *l) {
   retoursTraitementCommande retour = NORMAL;
 
+  int estCommandeForeground = (l->bg == 0);
+
   //Si la commande doit être effectuée au premier plan
-  if(l->bg == 0)
+  if(estCommandeForeground)
   {
     //Mise à 1 de la variable globale indiquant si une commande est déjà en train d'être exécutée en foreground.
     estCommandeForegroundEnCours = 1;
@@ -101,6 +103,8 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
 
   int permissions;
 
+  int estCommandeForeground = (l->bg == 0);
+
   while (l->seq[i] != NULL)
   {
     aEteOuvertTuyau = 0;
@@ -156,7 +160,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
     else
     {
       //Insertion du PID du fils créé dans la liste si la commande est en foreground
-      if(l->bg == 0)
+      if(estCommandeForeground)
       {
         AjouterElementListeInt(pidsCommandeForeground, pidFilsCree);
       }
