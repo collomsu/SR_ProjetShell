@@ -45,7 +45,7 @@ retoursTraitementCommande executer_commande_simple(char **commande, int fdIn, in
     retour = execvp_correct(execvp(commande[0], commande), commande);
   }
 
-  exit(retour);
+  return retour;
 }
 
 int verification_permissions_fichier(char* fichier) {
@@ -129,9 +129,10 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
         permissions = verification_permissions_fichier(l->in);
         if(permissions == -1) {
           printf("%s: File not found.\n", l->in);
-          return ERREUR_EXECUTION_COMMANDE;
+          retour = ERREUR_REDIRECTION_FICHIER;
         } else if (permissions < 400) {
           printf("%s: Permission denied.\n", l->in);
+          retour = ERREUR_REDIRECTION_FICHIER;
         } else {
           fdIn = open(l->in, O_RDONLY, 0);
         }
@@ -143,9 +144,16 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
         int i = verification_permissions_fichier(l->out);
         if ((i >= 0 && i < 200) || (i >= 400 && i < 600)) {
           printf("%s: Permission denied.\n", l->out);
+          retour = ERREUR_REDIRECTION_FICHIER;
         } else {
           fdOut = open(l->out, O_WRONLY | O_CREAT, S_IRWXU);
         }
+      }
+
+      //Si il y a eu un problème avec les redirections de fichiers, on exit le code d'erreur
+      if(retour == ERREUR_REDIRECTION_FICHIER)
+      {
+        exit(retour);
       }
 
       //Si le fils actuellement créé a comme sortie un pipe

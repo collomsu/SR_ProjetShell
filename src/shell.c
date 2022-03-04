@@ -42,7 +42,8 @@ void handler_SIGCHLD(int sig) {
 		{
 			//Si le signal émis indique qu'il y a eu des problèmes lors de l'exécution de la commande
 			if(retourProcessusFilsTermine == COMMANDE_INTERNE_PAS_TROUVEE
-			|| retourProcessusFilsTermine == ERREUR_EXECUTION_COMMANDE)
+			   || retourProcessusFilsTermine == ERREUR_EXECUTION_COMMANDE
+			   || retourProcessusFilsTermine == ERREUR_REDIRECTION_FICHIER)
 			{
 				processusAEuProblemeDExecution = 1;
 			}

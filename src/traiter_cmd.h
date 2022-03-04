@@ -17,6 +17,7 @@ typedef enum {
     ATTENDRE_FIN_PROCESSUS_FOREGROUND,
     COMMANDE_INTERNE_PAS_TROUVEE,
     ERREUR_EXECUTION_COMMANDE,
+    ERREUR_REDIRECTION_FICHIER,
     //Valeur indiquant que le Shell doit être fermé
     FERMETURE_SHELL
 } retoursTraitementCommande;
