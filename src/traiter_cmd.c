@@ -114,6 +114,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
     {
       if(pipe(fd) == -1) {
         perror("Pipeline failed");
+        fflush(stdout);
       }
 
       aEteOuvertTuyau = 1;
@@ -170,7 +171,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
     }
     else
     {
-      //Insertion du PID du fils créé dans la liste si la commande est en foreground
+      //Insertion du PID du fils créé dans la liste des PIDs de processus en foreground si la commande est en foreground
       if(estCommandeForeground)
       {
         AjouterElementListeInt(pidsCommandeForeground, pidFilsCree);

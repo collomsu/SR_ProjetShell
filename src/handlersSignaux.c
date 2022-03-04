@@ -1,0 +1,144 @@
+#include "handlersSignaux.h"
+
+//Variables externes du MiniShell
+extern int finShell;
+extern int estCommandeForegroundEnCours;
+extern listeInt* pidsCommandeForeground;
+
+
+//-1) Handlers de signaux
+
+void handler_SIGCHLD(int sig) {
+	//Récupération du PID du processus fils terminé et de son retour
+	int statutFinProcessusFilsTermine;
+
+	int pidFilsTermine = waitpid(-1, &statutFinProcessusFilsTermine, WNOHANG | WUNTRACED);
+
+	//Si un processus a bien été intercepté (car WNOHANG n'est pas bloquant)
+	if(pidFilsTermine > 0)
+	{
+		//On regarde comment s'est terminé le processus
+		retoursTraitementCommande retourProcessusFilsTermine = WEXITSTATUS(statutFinProcessusFilsTermine);
+
+		int processusAEuProblemeDExecution = 0;
+
+		//Si le processus fils ne s'est pas terminé correctement
+		if(WIFEXITED(statutFinProcessusFilsTermine) == 0)
+		{
+			processusAEuProblemeDExecution = 1;
+		}
+		//Si le processus fils s'est terminé correctement mais que le signal émis n'était pas le signal normal
+		else
+		{
+			//Si le signal émis indique qu'il y a eu des problèmes lors de l'exécution de la commande
+			if(retourProcessusFilsTermine == COMMANDE_INTERNE_PAS_TROUVEE
+			   || retourProcessusFilsTermine == ERREUR_EXECUTION_COMMANDE
+			   || retourProcessusFilsTermine == ERREUR_REDIRECTION_FICHIER)
+			{
+				processusAEuProblemeDExecution = 1;
+			}
+			else
+			{
+				//Si le signal émis indique de fermer le MiniShell
+				if(retourProcessusFilsTermine == FERMETURE_SHELL)
+				{
+					finShell = 1;
+					printf("exit\n");
+					fflush(stdout);
+				}
+			}
+		}
+
+		//Si le processus terminé a eu des problèmes d'exécution
+		//Pour le moment, l'action associée à cette situation n'est pas décidée.
+		//->Là on ne fait rien de spécial mais deux comportements étaient envisagés:
+		//  -Afficher une erreur à l'utilisateur et fermer le shell.
+		//  -Envoyer un signal pour kill les processus foreground encore en cours d'exécution.
+		if(processusAEuProblemeDExecution == 1)
+		{
+			/*printf("Erreur lors de l'exécution de la commande, fermeture du MiniShell.\n");
+
+			finShell = 1;*/
+		}
+
+		//Variable permettant de savoir si le processus terminé était un processus background ou foreground
+		int etaitProcessusTermineForeground = 0;
+
+		//Enfin, on retire de la liste des PID de processus en foreground le pid du processus qui vient de se terminer
+		if(SupprimerElementListeInt(pidsCommandeForeground, pidFilsTermine) == 0)
+		{
+			etaitProcessusTermineForeground = 1;
+		}
+
+		if(EstListeIntVide(pidsCommandeForeground))
+		{
+			estCommandeForegroundEnCours = 0;
+		}
+
+		//Si il n'y a pas de processus en foreground et que le processus terminé était en background (il a pu perturber l'affichage)
+		//->affichage à l'utilisateur que le MiniShell est disponible
+		if(estCommandeForegroundEnCours == 0 && etaitProcessusTermineForeground == 0)
+		{
+			printf("shell> ");
+			fflush(stdout);
+		}
+		//On n'effectue cet affichage que lorsque le processus terminé était en background pour éviter d'afficher "shell> "
+		//plusieurs fois de suite à l'utilisateur (le message est affiché à la fin de chaque processus foreground, voir main())
+	}
+}
+
+void handler_SIGINT(int sig) {
+	//On envoie à chaque processus en cours d'exécution au premier plan le signal SIGINT
+	
+	struct elementListeInt *ElementParcoursPidsProcessusForeground = pidsCommandeForeground->tete;
+
+	while (ElementParcoursPidsProcessusForeground != NULL)
+	{
+		//Envoi du signal au processus via la fonction kill
+		if(kill(ElementParcoursPidsProcessusForeground->valeur, SIGINT) == -1) {
+			perror("kill");
+			fflush(stdout);
+		}
+
+		ElementParcoursPidsProcessusForeground = ElementParcoursPidsProcessusForeground->suivant;
+	}
+
+	//On imprime un retour à la ligne (pour la propreté de l'affichage)
+	printf("\n");
+}
+
+void handler_SIGTSTP(int sig) {
+	//On envoie à chaque processus en cours d'exécution au premier plan le signal SIGTSTP
+	
+	struct elementListeInt *ElementParcoursPidsProcessusForeground = pidsCommandeForeground->tete;
+
+	while (ElementParcoursPidsProcessusForeground != NULL)
+	{
+		//Envoi du signal au processus via la fonction kill
+		if(kill(ElementParcoursPidsProcessusForeground->valeur, SIGTSTP) == -1) {
+			perror("kill");
+			fflush(stdout);
+		}
+
+		ElementParcoursPidsProcessusForeground = ElementParcoursPidsProcessusForeground->suivant;
+	}
+
+	//On imprime un retour à la ligne (pour la propreté de l'affichage)
+	printf("\n");
+}
+
+
+
+//-2) Fonctions de mise en place des handlers
+
+void setup_handler_SIGCHLD() {
+  Signal(SIGCHLD, handler_SIGCHLD);
+}
+
+void setup_handler_SIGINT() {
+  Signal(SIGINT, handler_SIGINT);
+}
+
+void setup_handler_SIGTSTP() {
+  Signal(SIGINT, handler_SIGTSTP);
+}
