@@ -1,7 +1,6 @@
 #
-# test_erreur_fichier_sortie02.txt - Exécute deux commande : ls avec une redirection de fichier en sortie.
-# 1ère commande : Cependant le fichier en sortie n'existe pas. Le shell va donc en créer un et effectuer la redirection.
-# 2ème commande : Vous ne disposez pas des droits recquis pour effetuer une écriture sur le fichier.
+# test_erreur_fichier_sortie02.txt - Exécute une commande : ls avec une redirection de fichier en sortie.
+# Cependant vous ne disposez pas des droits recquis pour effectuer une écriture sur le fichier.
 # (permission 500)
 #
 ls > fichier_sans_ecriture.txt
