@@ -25,4 +25,4 @@ all: clean shell loop loop_100
 	$(CC) -o $@ $(LDFLAGS) $^ $(LIBS)
 
 clean:
-	rm -f shell loop *.o
+	rm -f shell loop loop_100 *.o
