@@ -78,7 +78,7 @@ void handler_SIGCHLD(int sig) {
 		{
 			etaitProcessusTermineForeground = 1;
 		}
-			
+
 		if(EstListeIntVide(pidsCommandeForeground))
 		{
 			estCommandeForegroundEnCours = 0;
@@ -120,7 +120,7 @@ int main()
 		//Attente que la commande en foreground soit terminée
 		while(estCommandeForegroundEnCours && finShell == 0)
 		{
-			
+
 		}
 
 		if(finShell == 0)
