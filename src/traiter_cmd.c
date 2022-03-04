@@ -129,9 +129,11 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
         permissions = verification_permissions_fichier(l->in);
         if(permissions == -1) {
           printf("%s: File not found.\n", l->in);
+          fflush(stdout);
           retour = ERREUR_REDIRECTION_FICHIER;
         } else if (permissions < 400) {
           printf("%s: Permission denied.\n", l->in);
+          fflush(stdout);
           retour = ERREUR_REDIRECTION_FICHIER;
         } else {
           fdIn = open(l->in, O_RDONLY, 0);
@@ -144,6 +146,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
         int i = verification_permissions_fichier(l->out);
         if ((i >= 0 && i < 200) || (i >= 400 && i < 600)) {
           printf("%s: Permission denied.\n", l->out);
+          fflush(stdout);
           retour = ERREUR_REDIRECTION_FICHIER;
         } else {
           fdOut = open(l->out, O_WRONLY | O_CREAT, S_IRWXU);
@@ -208,7 +211,11 @@ retoursTraitementCommande execvp_correct(int retourLancementCommande, char **com
 
     printf("\".\n");
 
+    fflush(stdout);
+
     perror("exec");
+
+    fflush(stdout);
 
     retour = ERREUR_EXECUTION_COMMANDE;
   }
@@ -220,9 +227,11 @@ void afficherCommande(char **commande)
   int i = 0;
 
   while (commande[i] != NULL)
-    {
-      printf("%s", commande[i]);
+  {
+    printf("%s", commande[i]);
 
-      i = i + 1;
-    }
+    i = i + 1;
+  }
+
+  fflush(stdout);
 }

@@ -54,6 +54,7 @@ void handler_SIGCHLD(int sig) {
 				{
 					finShell = 1;
 					printf("exit\n");
+					fflush(stdout);
 				}
 			}
 		}
@@ -137,12 +138,14 @@ int main()
 			if (l == NULL) {
 				finShell = 1;
 				printf("exit\n");
+				fflush(stdout);
 			}
 			else
 			{
 				if (l->err != NULL) {
 					/* Syntax error, read another command */
 					printf("error: %s\n", l->err);
+					fflush(stdout);
 				}
 				//Si pas d'erreur, traitement de la commande
 				else
