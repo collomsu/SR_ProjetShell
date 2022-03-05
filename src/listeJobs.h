@@ -36,7 +36,7 @@ void AjouterElementListeJobs(listeJobs *laListe, int numeroJob, char* commandeLa
 
 //Retourne 0 si l'état de l'élément a bien été modifié
 //Si l'élément à modifier n'était pas dans la liste, -1 est retourné
-void ModifierEtatElementListeJobs(listeJobs *laListe, int numeroJob, etatsJobs nouvelEtatJob);
+int ModifierEtatElementListeJobs(listeJobs *laListe, int numeroJob, etatsJobs nouvelEtatJob);
 
 //Retourne 0 si l'élément a bien été supprimé de la liste
 //Si l'élément à supprimer n'était pas dans la liste, -1 est retourné

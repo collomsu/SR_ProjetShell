@@ -69,6 +69,7 @@ int main()
 				//Si pas d'erreur, traitement de la commande
 				else
 				{
+					printf("\nCommande écrite: %s\n\n", getChaineCommandeComplete(l));
 					retourCommande = traiter_commande(l);
 
 					if(retourCommande == FERMETURE_SHELL){

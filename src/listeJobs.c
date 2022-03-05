@@ -84,7 +84,7 @@ void AjouterElementListeJobs(listeJobs *laListe, int numeroJob, char* commandeLa
    laListe->tete = elementInsere;
 }
 
-void ModifierEtatElementListeJobs(listeJobs *laListe, int numeroJob, etatsJobs nouvelEtatJob)
+int ModifierEtatElementListeJobs(listeJobs *laListe, int numeroJob, etatsJobs nouvelEtatJob)
 {
    int retour = -1;
 
