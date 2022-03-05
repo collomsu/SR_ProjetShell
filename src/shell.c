@@ -13,8 +13,8 @@
 
 extern int finShell;
 //Variables externes du MiniShell
-extern int estCommandeForegroundEnCours;
-extern listeInt* pidsCommandeForeground;
+extern int numJobCommandeForeground;
+listeJobs* listeJobsShell;
 extern listeJobs* listeJobsShell;
 
 
@@ -24,8 +24,7 @@ int main()
 {
 	//Initialisation des variables externes
 	finShell = 0;
-	estCommandeForegroundEnCours = 0;
-	pidsCommandeForeground = NouvelleListeInt();
+	numJobCommandeForeground = -1;
 	listeJobsShell = NouvelleListeJobs();
 
 
@@ -72,9 +71,9 @@ int main()
 				//Si pas d'erreur, ajout d'un nouveau job à la liste et traitement de la commande
 				else
 				{
-					AjouterElementListeJobs(listeJobsShell, getChaineCommandeComplete(l), RUNNING);
+					int numeroJobCommande = AjouterElementListeJobs(listeJobsShell, getChaineCommandeComplete(l), RUNNING);
 
-					retourCommande = traiter_commande(l);
+					retourCommande = traiter_commande(l, numeroJobCommande);
 
 					if(retourCommande == FERMETURE_SHELL){
 						finShell = 1;

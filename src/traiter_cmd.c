@@ -1,11 +1,10 @@
 #include "traiter_cmd.h"
 
 //Variables externes du MiniShell
-extern int estCommandeForegroundEnCours;
-extern listeInt* pidsCommandeForeground;
+extern int numJobCommandeForeground;
 extern listeJobs* listeJobsShell;
 
-retoursTraitementCommande traiter_commande(struct cmdline *l) {
+retoursTraitementCommande traiter_commande(struct cmdline *l, int numeroJobCommande) {
   retoursTraitementCommande retour = NORMAL;
 
   int estCommandeForeground = (l->bg == 0);
@@ -13,16 +12,12 @@ retoursTraitementCommande traiter_commande(struct cmdline *l) {
   //Si la commande doit être effectuée au premier plan
   if(estCommandeForeground)
   {
-    //Mise à 1 de la variable globale indiquant si une commande est déjà en train d'être exécutée en foreground.
-    estCommandeForegroundEnCours = 1;
-
-    //Remise à zéro de la liste des pids des processus en foreground
-    DetruireListeInt(pidsCommandeForeground);
-    pidsCommandeForeground = NouvelleListeInt();
+    //Modification de la variable globale indiquant le PID du processus actuellement en foreground.
+    numJobCommandeForeground = numeroJobCommande;
   }
 
   //Appel d'une fonction traitant la commande avec et sans pipe
-  retour = executer_commande_pipe(l);
+  retour = executer_commande_pipe(l, numeroJobCommande);
 
   return retour;
 }
@@ -95,7 +90,7 @@ retoursTraitementCommande executer_commande_interne(char **commande)
 
 //Fonction traitant une commande avec ou sans pipe
 //->Appel à la fonction executer_commande_simple
-retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
+retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int numeroJobCommande) {
   retoursTraitementCommande retour = NORMAL;
 
   //Création de chacun des fils des sous-commandes de la série de commandes et exécution
@@ -108,7 +103,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
 
   int permissions;
 
-  int estCommandeForeground = (l->bg == 0);
+  listeInt* listePidsCommande = GetElementListeJobsByNumero(listeJobsShell, numeroJobCommande)->listePIDsJob;
 
   while (l->seq[i] != NULL)
   {
@@ -176,11 +171,8 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
     }
     else
     {
-      //Insertion du PID du fils créé dans la liste des PIDs de processus en foreground si la commande est en foreground
-      if(estCommandeForeground)
-      {
-        AjouterElementListeInt(pidsCommandeForeground, pidFilsCree);
-      }
+      //Insertion du PID du fils créé dans la liste des PIDs du job de la commande
+      AjouterElementListeInt(listePidsCommande, pidFilsCree);
 
       if(aEteOuvertTuyauPrecedent == 1)
       {
