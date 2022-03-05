@@ -18,7 +18,7 @@ void handler_SIGCHLD(int sig) {
 
 	int pidFilsTermine;
 
-	while(pidFilsTermine = waitpid(-1, &statutFinProcessusFilsTermine, WNOHANG | WUNTRACED) > 0)
+	while((pidFilsTermine = waitpid(-1, &statutFinProcessusFilsTermine, WNOHANG | WUNTRACED)) > 0)
 	{
 		//Si le processus fils est un processus fils terminé (il a exit)
 		if(WIFSTOPPED(statutFinProcessusFilsTermine) == 0 && WIFCONTINUED(statutFinProcessusFilsTermine) == 0)
