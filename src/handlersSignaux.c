@@ -16,10 +16,9 @@ void handler_SIGCHLD(int sig) {
 	//Récupération du PID du processus fils terminé et de son retour
 	int statutFinProcessusFilsTermine;
 
-	int pidFilsTermine = waitpid(-1, &statutFinProcessusFilsTermine, WNOHANG | WUNTRACED);
+	int pidFilsTermine;
 
-	//Si un processus a bien été intercepté (car WNOHANG n'est pas bloquant)
-	if(pidFilsTermine > 0)
+	while(pidFilsTermine = waitpid(-1, &statutFinProcessusFilsTermine, WNOHANG | WUNTRACED) > 0)
 	{
 		//Si le processus fils est un processus fils terminé (il a exit)
 		if(WIFSTOPPED(statutFinProcessusFilsTermine) == 0 && WIFCONTINUED(statutFinProcessusFilsTermine) == 0)
