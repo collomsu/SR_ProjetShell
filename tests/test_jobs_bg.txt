@@ -1,0 +1,7 @@
+#
+# test_jobs_bg.txt - Exécute un programme de boucle infini dont le processus est exécuté en arrière-plan.
+# Il est ensuite arrêté avec la commande stop, puis placer en cours d'exécution en arrière-plan avec bg.
+#
+./src/loop &
+stop 1
+bg

@@ -1,0 +1,6 @@
+#
+# test_jobs_fg.txt - Exécute un programme de boucle infini dont le processus est exécuté en arrière-plan.
+# Il est ensuite placer en exécution au premier plan avec la commande fg.
+#
+./src/loop &
+fg
