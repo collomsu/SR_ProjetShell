@@ -10,6 +10,8 @@
 #include "traiter_cmd.h"
 #include "listeInt.h"
 #include "handlersSignaux.h"
+#include "listeJobs.h"
+#include "fonctions_utiles.h"
 
 extern int finShell;
 //Variables externes du MiniShell

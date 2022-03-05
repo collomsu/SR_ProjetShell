@@ -1,4 +1,5 @@
 #include "traiter_cmd.h"
+#include "fonctions_utiles.h"
 
 //Variables externes du MiniShell
 extern int numJobCommandeForeground;
@@ -194,7 +195,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int numeroJo
 
   int permissions;
 
-  listeInt* listePidsCommande = GetElementListeJobsByNumero(listeJobsShell, numeroJobCommande)->listePIDsJob;
+  struct elementListeJobs* listeJobsCommande = GetElementListeJobsByNumero(listeJobsShell, numeroJobCommande);
 
   while (l->seq[i] != NULL)
   {
