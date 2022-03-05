@@ -1,5 +1,4 @@
 #include "traiter_cmd.h"
-#include "fonctions_utiles.h"
 
 //Variables externes du MiniShell
 extern int estCommandeForegroundEnCours;
@@ -60,22 +59,28 @@ retoursTraitementCommande executer_commande_interne(char **commande)
     retour = FERMETURE_SHELL;
   } else if(strcmp(commande[0], "jobs") == 0) {
     retour = NORMAL;
-    if (!EstListeJobsVide(listeJobsShell)) {
-      char *etat;
+
+    //Parcours de la liste des jobs pour afficher leurs caractéristiques
+    struct elementListeJobs *ElementParcoursListeJobs = listeJobsShell->tete;
+
+    char *etatJob;
+
+    while(ElementParcoursListeJobs != NULL)
+    {
       switch (listeJobsShell->tete->etatJob) {
         case RUNNING:
-          etat = "En cours d'exécution";
+          etatJob = "Running";
           break;
         case STOPPED:
-          etat = "Arrêté";
+          etatJob = "Stopped";
           break;
         case NON_DEFINI:
-          etat = "Non défini";
+          etatJob = "Error, state not defined";
           break;
         default:
           break;
       }
-      printf("[%d]  %s  %s\n",listeJobsShell->tete->numeroJob, etat, listeJobsShell->tete->commandeLancementJob);
+      printf("[%d]  %s  %s\n",listeJobsShell->tete->numeroJob, etatJob, listeJobsShell->tete->commandeLancementJob);
     }
   } else if(strcmp(commande[0], "fg") == 0) {
     retour = NORMAL;

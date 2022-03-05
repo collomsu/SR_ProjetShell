@@ -8,7 +8,9 @@
 #include "errno.h"
 #include "readcmd.h"
 #include "csapp.h"
+#include "fonctions_utiles.h"
 #include "listeInt.h"
+#include "listeJobs.h"
 #include "variablesExternes.h"
 
 //Enum utilisée pour gérer le retour du traitement de commandes
