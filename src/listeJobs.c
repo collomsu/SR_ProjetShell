@@ -178,7 +178,7 @@ int getPointeurCommandeLancementJobByNumeroJob(listeJobs *laListe, int numeroJob
 
    if(!EstListeJobsVide(laListe))
    {
-      struct elementListeJobs *ElementAModifier = NULL;
+      struct elementListeJobs *ElementCherche = NULL;
 
       if(laListe->tete->numeroJob == numeroJob)
       {
@@ -193,7 +193,7 @@ int getPointeurCommandeLancementJobByNumeroJob(listeJobs *laListe, int numeroJob
             //Si on a trouvé notre élément
             if(elementParcoursListe->suivant->numeroJob == numeroJob)
             {
-               ElementAModifier = elementParcoursListe->suivant;
+               ElementCherche = elementParcoursListe->suivant;
                retour = 0;
             }
             else
@@ -205,7 +205,7 @@ int getPointeurCommandeLancementJobByNumeroJob(listeJobs *laListe, int numeroJob
 
       if(retour == 0)
       {
-         ElementAModifier->etatJob = nouvelEtatJob;
+         pointeurCommandeLancement = ElementCherche->commandeLancementJob;
       }
    }
 
