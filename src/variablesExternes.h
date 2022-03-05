@@ -16,7 +16,7 @@ int estCommandeForegroundEnCours;
 //Liste (d'entiers) des PIDs de processus actuellement en exécution en foreground.
 listeInt* pidsCommandeForeground;
 
-//Liste des jobs de notre MiniShell (composé d'un numéro, nom de commande, un état, et d'un pointeur vers le prochain élément).
+//Liste des jobs de notre MiniShell (composé d'un numéro, de la commande, un état, et d'un pointeur vers le prochain élément).
 listeJobs* listeJobsShell;
 
 #endif
