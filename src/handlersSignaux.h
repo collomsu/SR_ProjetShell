@@ -9,7 +9,7 @@
 #include "listeInt.h"
 #include "variablesExternes.h"
 
-//Les fichiers handlersSignaux contiennent toutes les fonctions relatives aux signaux pouvant être reçus par le MiniShell (handlers et fonctions permettant de 
+//Les fichiers handlersSignaux contiennent toutes les fonctions relatives aux signaux pouvant être reçus par le MiniShell (handlers et fonctions permettant de
 //mettre en place ces derniers).
 
 
@@ -41,5 +41,7 @@ void setup_handler_SIGINT();
 
 //Fonction de mise en place du handler handler_SIGTSTP.
 void setup_handler_SIGTSTP();
+
+void setup_masque_signaux();
 
 #endif

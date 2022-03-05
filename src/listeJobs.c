@@ -1,6 +1,6 @@
 #include <string.h>
-#include <stdlib.h> 
-#include <stdio.h> 
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "listeJobs.h"
 
@@ -9,7 +9,7 @@ listeJobs* NouvelleListeJobs(void)
    listeJobs* nouvelleListe = malloc(sizeof(listeJobs));
 
    nouvelleListe->tete = NULL;
-   
+
    return nouvelleListe;
 }
 
@@ -21,7 +21,7 @@ struct elementListeJobs* NouvelElementListeJobs(void)
    nouvelElement->commandeLancementJob = NULL;
    nouvelElement->etatJob = NON_DEFINI;
    nouvelElement->suivant = NULL;
-   
+
    return nouvelElement;
 }
 
@@ -91,7 +91,7 @@ int ModifierEtatElementListeJobs(listeJobs *laListe, int numeroJob, etatsJobs no
       struct elementListeJobs *ElementAModifier = laListe->tete;
 
       int indexElementParcouru = 1;
-      
+
       while(retour == -1 && ElementAModifier != NULL)
       {
          //Si on a trouvé notre élément
@@ -148,7 +148,7 @@ int SupprimerElementListeJobs(listeJobs *laListe, int numeroJob)
             {
                elementParcoursListe = elementParcoursListe->suivant;
             }
-            
+
          }
       }
 
@@ -175,7 +175,7 @@ int getPointeurCommandeLancementJobByNumeroJob(listeJobs *laListe, int numeroJob
       struct elementListeJobs *ElementCherche = laListe->tete;
 
       int indexElementParcouru = 1;
-      
+
       while(retour == -1 && ElementCherche != NULL)
       {
          //Si on a trouvé notre élément
