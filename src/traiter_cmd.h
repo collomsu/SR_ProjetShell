@@ -8,7 +8,6 @@
 #include "errno.h"
 #include "readcmd.h"
 #include "csapp.h"
-#include "fonctions_utiles.h"
 #include "listeInt.h"
 #include "listeJobs.h"
 #include "variablesExternes.h"

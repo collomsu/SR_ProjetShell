@@ -1,4 +1,5 @@
 #include "traiter_cmd.h"
+#include "fonctions_utiles.h"
 
 //Variables externes du MiniShell
 extern int numJobCommandeForeground;

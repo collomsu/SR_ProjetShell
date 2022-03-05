@@ -11,6 +11,7 @@
 #include "listeInt.h"
 #include "handlersSignaux.h"
 #include "listeJobs.h"
+#include "fonctions_utiles.h"
 
 extern int finShell;
 //Variables externes du MiniShell
@@ -41,7 +42,7 @@ int main()
 	while (finShell == 0)
 	{
 		//Attente que la commande en foreground soit terminée
-		while(estCommandeForegroundEnCours && finShell == 0)
+		while(numJobCommandeForeground != -1 && finShell == 0)
 		{
 
 		}
