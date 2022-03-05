@@ -102,6 +102,7 @@ int AjouterElementListeJobs(listeJobs *laListe, char *commandeLancementJob, etat
 
   
   numeroJobAJoute = elementInsere->numeroJob;
+  
   return numeroJobAJoute;
 }
 

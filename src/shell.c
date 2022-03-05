@@ -79,9 +79,7 @@ int main()
 					//Si la commande n'est pas vide
 					if(l->seq[0] != NULL)
 					{
-						int numeroJobCommande = AjouterElementListeJobs(listeJobsShell, getChaineCommandeComplete(l), RUNNING);
-					
-						retourCommande = traiter_commande(l, numeroJobCommande);
+						retourCommande = traiter_commande(l);
 
 						if(retourCommande == FERMETURE_SHELL){
 							finShell = 1;
