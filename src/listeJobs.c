@@ -16,7 +16,7 @@ listeJobs* NouvelleListeJobs(void)
 struct elementListeJobs* NouvelElementListeJobs(void)
 {
    struct elementListeJobs* nouvelElement = malloc(sizeof(struct elementListeJobs));
-
+   nouvelElement->numeroJob = 0;
    nouvelElement->commandeLancementJob = NULL;
    nouvelElement->etatJob = NON_DEFINI;
    nouvelElement->suivant = NULL;
@@ -73,9 +73,12 @@ int AjouterElementListeJobs(listeJobs *laListe, char *commandeLancementJob, etat
   strcpy(elementInsere->commandeLancementJob, commandeLancementJob);
 
   elementInsere->etatJob = etatJob;
+  //Si aucun élément dans la liste, on ajoute en tete avece comme numéro de job le numéro 1
   if(laListe->tete == NULL) {
     elementInsere->numeroJob = 1;
     laListe->tete = elementInsere;
+
+  //Sinon on ajoute en queue avec comme numero de job le numéro du dernier job + 1
   } else {
     struct elementListeJobs *element = laListe->tete;
     elementInsere->numeroJob = numeroDernierJob(laListe) + 1;
@@ -129,13 +132,14 @@ int SupprimerElementListeJobs(listeJobs *laListe, int numeroJob)
    {
       struct elementListeJobs *ElementADetruire = laListe->tete;
       int indexElementParcouruSuivant = laListe->tete->numeroJob;
-      //Suppression de la tête si le job à supprimé est le numéro 1
+      //Suppression de la tête si le job à supprimé est égal au numéro de la tête
       if(numeroJob == indexElementParcouruSuivant)
       {
          ElementADetruire = laListe->tete;
          laListe->tete = laListe->tete->suivant;
          retour = 0;
       }
+      //Sinon on cherche dans le reste de la liste l'élément correspondant au numéro de job à supprimer
       else
       {
          struct elementListeJobs *elementParcoursListe = laListe->tete;
@@ -210,8 +214,10 @@ int getPointeurCommandeLancementJobByNumeroJob(listeJobs *laListe, int numeroJob
 int numeroDernierJob(listeJobs *laListe) {
   struct elementListeJobs *suivant;
   int numero;
+  //Si aucun élément dans la liste on renvoit 0
   if(laListe->tete == NULL) {
     numero = 0;
+  //Sinon on cherche le numéro du dernier job de la liste
   } else {
     suivant = laListe->tete;
     while(suivant != NULL) {
@@ -229,11 +235,13 @@ struct elementListeJobs* GetElementListeJobsByNumero(listeJobs *laListe, int num
     element = laListe->tete;
     while(element != NULL) {
       if(element->numeroJob == numeroJobCommande) {
+        //Si l'élément a été trouvé on sort de la boucle
         break;
       } else {
         element = element->suivant;
       }
     }
   }
+  
   return element;
 }
