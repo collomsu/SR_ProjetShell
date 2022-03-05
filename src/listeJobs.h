@@ -13,6 +13,7 @@ typedef enum {
 } etatsJobs;
 
 struct elementListeJobs{
+    int numeroJob;
     char* commandeLancementJob;
     etatsJobs etatJob;
     struct elementListeJobs *suivant;
@@ -49,5 +50,9 @@ int EstListeJobsVide(listeJobs *laListe);
 //Le pointeur cherché est retourné via pointeurCommandeLancement
 //Retourne 0 si l'élément dont la commande était cherchée été trouvé dans la liste, sinon -1
 int getPointeurCommandeLancementJobByNumeroJob(listeJobs *laListe, int numeroJob, char* pointeurCommandeLancement);
+
+int numeroDernierJob(listeJobs *laListe);
+
+struct elementListeJobs* GetElementListeJobsByNumero(listeJobs *laListe, int numeroJobCommande);
 
 #endif
