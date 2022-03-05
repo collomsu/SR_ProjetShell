@@ -10,10 +10,6 @@ extern sigset_t structureDeSignaux;
 //-1) Handlers de signaux
 
 void handler_SIGCHLD(int sig) {
-
-	//Initialisation de la structure de données des signaux
-	setup_masque_signaux();
-
 	//Masquage des signaux contenus dans la structure de données
 	Sigprocmask(SIG_BLOCK, &structureDeSignaux, NULL);
 
@@ -69,9 +65,6 @@ void handler_SIGCHLD(int sig) {
 			finShell = 1;*/
 		}
 
-		//Variable permettant de savoir si le processus terminé était un processus background ou foreground
-		int etaitProcessusTermineForeground = 0;
-
 		//Enfin, on retire de la liste des PID de processus le pid du processus qui vient de se terminer
 		//On cherche à quel job appartenait le processus terminé
 		struct elementListeJobs *ElementParcoursListeJobs = listeJobsShell->tete;
@@ -80,19 +73,21 @@ void handler_SIGCHLD(int sig) {
 			ElementParcoursListeJobs = ElementParcoursListeJobs->suivant;
 		}
 
-		if(ElementParcoursListeJobs->numeroJob == numJobCommandeForeground)
-		{
-			etaitProcessusTermineForeground = 1;
-		}
-
+		//Si la liste des PIDs du job dont l'un des processus vient de se terminer est vide, on supprime ce job
 		if(EstListeIntVide(ElementParcoursListeJobs->listePIDsJob))
+		{
+			SupprimerElementListeJobs(listeJobsShell, ElementParcoursListeJobs->numeroJob);
+		}
+		
+		//Si dans la liste des jobs: le job qui, avant reception du SIGCHLD, était au premier plan n'existe plus
+		//->Mise à jour de la variable numJobCommandeForeground
+		if(GetElementListeJobsByNumero(listeJobsShell, numJobCommandeForeground) == NULL)
 		{
 			numJobCommandeForeground = -1;
 		}
 
-		//Si il n'y a pas de processus en foreground et que le processus terminé était en background (il a pu perturber l'affichage)
-		//->affichage à l'utilisateur que le MiniShell est disponible
-		if(numJobCommandeForeground == -1 && etaitProcessusTermineForeground == 0)
+		//Si il n'y a pas de processus en foreground->affichage à l'utilisateur que le MiniShell est disponible
+		if(numJobCommandeForeground == -1)
 		{
 			printf("shell> ");
 			fflush(stdout);
@@ -108,13 +103,12 @@ void handler_SIGCHLD(int sig) {
 void handler_SIGINT(int sig) {
 	//On envoie à chaque processus en cours d'exécution au premier plan le signal SIGINT
 
-	//Initialisation de la structure de données des signaux
-	setup_masque_signaux();
+	struct elementListeJobs* jobArrete = GetElementListeJobsByNumero(listeJobsShell, numJobCommandeForeground);
 
 	//Masquage des signaux contenus dans la structure de données
 	Sigprocmask(SIG_BLOCK, &structureDeSignaux, NULL);
 
-	struct elementListeInt *ElementParcoursPidsJobForeground = GetElementListeJobsByNumero(listeJobsShell, numeroJobCommande)->listePIDsJob->tete;
+	struct elementListeInt *ElementParcoursPidsJobForeground = jobArrete->listePIDsJob->tete;
 
 	while (ElementParcoursPidsJobForeground != NULL)
 	{
@@ -139,13 +133,15 @@ void handler_SIGINT(int sig) {
 void handler_SIGTSTP(int sig) {
 	//On envoie à chaque processus en cours d'exécution au premier plan le signal SIGTSTP
 
-	//Initialisation de la structure de données des signaux
-	setup_masque_signaux();
+	struct elementListeJobs* jobMisEnPause = GetElementListeJobsByNumero(listeJobsShell, numJobCommandeForeground);
+
+	//On indique dans la liste des jobs que le processus qui était au premier plan passe en background
+	jobMisEnPause->etatJob = STOPPED;
 
 	//Masquage des signaux contenus dans la structure de données
 	Sigprocmask(SIG_BLOCK, &structureDeSignaux, NULL);
 
-	struct elementListeInt *ElementParcoursPidsJobForeground = GetElementListeJobsByNumero(listeJobsShell, numeroJobCommande)->listePIDsJob->tete;
+	struct elementListeInt *ElementParcoursPidsJobForeground = jobMisEnPause->listePIDsJob->tete;
 
 	while (ElementParcoursPidsJobForeground != NULL)
 	{
@@ -157,6 +153,7 @@ void handler_SIGTSTP(int sig) {
 
 		ElementParcoursPidsJobForeground = ElementParcoursPidsJobForeground->suivant;
 	}
+
 
 	//On imprime un retour à la ligne et "shell> " (pour la propreté de l'affichage)
 	printf("\n");
@@ -186,7 +183,10 @@ void setup_handler_SIGTSTP() {
 
 void setup_masque_signaux() {
 	Sigemptyset(&structureDeSignaux);
+
 	Sigaddset(&structureDeSignaux, SIGINT);
 	Sigaddset(&structureDeSignaux, SIGCHLD);
 	Sigaddset(&structureDeSignaux, SIGTSTP);
+
+	Sigprocmask(SIG_UNBLOCK, &structureDeSignaux, NULL);
 }

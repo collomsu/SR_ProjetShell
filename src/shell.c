@@ -27,6 +27,9 @@ int main()
 	numJobCommandeForeground = -1;
 	listeJobsShell = NouvelleListeJobs();
 
+	//Initialisation de la structure de données permettant de gérer les signaux
+	setup_masque_signaux();
+
 
 	//Mise en place des handlers associés aux signaux SIGCHLD, SIGINT et SIGTSTP
 	setup_handler_SIGCHLD();
@@ -36,22 +39,22 @@ int main()
 	struct cmdline *l;
 	retoursTraitementCommande retourCommande;
 
+	//Affichage à l'utilisateur que le MiniShell est disponible
+	printf("shell> ");
+	fflush(stdout);
+	//Cet affichage est effectué à chaque lancement du MiniShell + à chaque fin de processus foreground
+
 	//Boucle dont on sort lorsque l'on quitte le Shell
 	while (finShell == 0)
 	{
 		//Attente que la commande en foreground soit terminée
-		while(estCommandeForegroundEnCours && finShell == 0)
+		while(numJobCommandeForeground != -1 && finShell == 0)
 		{
 
 		}
 
 		if(finShell == 0)
 		{
-			//Affichage à l'utilisateur que le MiniShell est disponible
-			printf("shell> ");
-			fflush(stdout);
-			//Cet affichage est effectué à chaque lancement du MiniShell + à chaque fin de processus foreground
-
 			//lecture et analyse (lexicale / syntaxique) de la commande
 			l = readcmd();
 

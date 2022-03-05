@@ -52,37 +52,128 @@ retoursTraitementCommande executer_commande_interne(char **commande)
   if(strcmp(commande[0], "exit") == 0 || strcmp(commande[0], "quit") == 0)
   {
     retour = FERMETURE_SHELL;
-  } else if(strcmp(commande[0], "jobs") == 0) {
-    retour = NORMAL;
+  }
+  else
+  {
+    //Commande d'affichage des jobs
+    if(strcmp(commande[0], "jobs") == 0) {
+      retour = NORMAL;
 
-    //Parcours de la liste des jobs pour afficher leurs caractéristiques
-    struct elementListeJobs *ElementParcoursListeJobs = listeJobsShell->tete;
+      //Parcours de la liste des jobs pour afficher leurs caractéristiques
+      struct elementListeJobs *ElementParcoursListeJobs = listeJobsShell->tete;
 
-    char *etatJob;
+      char *etatJob;
 
-    while(ElementParcoursListeJobs != NULL)
-    {
-      switch (listeJobsShell->tete->etatJob) {
-        case RUNNING:
-          etatJob = "Running";
-          break;
-        case STOPPED:
-          etatJob = "Stopped";
-          break;
-        case NON_DEFINI:
-          etatJob = "Error, state not defined";
-          break;
-        default:
-          break;
+      while(ElementParcoursListeJobs != NULL)
+      {
+        switch (listeJobsShell->tete->etatJob) {
+          case RUNNING:
+            etatJob = "Running";
+            break;
+          case STOPPED:
+            etatJob = "Stopped";
+            break;
+          case NON_DEFINI:
+            etatJob = "Error, state not defined";
+            break;
+          default:
+            break;
+        }
+        printf("[%d]  %s  %s\n",listeJobsShell->tete->numeroJob, etatJob, listeJobsShell->tete->commandeLancementJob);
       }
-      printf("[%d]  %s  %s\n",listeJobsShell->tete->numeroJob, etatJob, listeJobsShell->tete->commandeLancementJob);
     }
-  } else if(strcmp(commande[0], "fg") == 0) {
-    retour = NORMAL;
+    else
+    {
+      //Commandes de gestions des jobs
+      //Ces commandes doivent être utilisées avec un et un seul paramètre (le numéro du job)
+      if(strcmp(commande[0], "fg") == 0 || strcmp(commande[0], "bg") == 0 || strcmp(commande[0], "stop") == 0)
+      {
+        retour = NORMAL;
 
-  } else if(strcmp(commande[0], "bg") == 0) {
-    retour = NORMAL;
+        //Ces commandes doivent être utilisées avec un et un seul paramètre (le numéro du job)
+        int numeroJob;
 
+        if (sscanf(commande[1], "%d", &numeroJob) != 1
+            || commande[1] == NULL || commande[2] != NULL)
+        {
+          printf("Erreur avec le nombre/type de paramêtres passés à la fonction \"%s\"\n", commande[0]);
+        }
+        else
+        {
+          //On regarde si le numéro du job est correct. Si il l'est, on effectue les actions associées à la commande
+          struct elementListeJobs* job = GetElementListeJobsByNumero(listeJobsShell, numeroJob);
+          if(job == NULL)
+          {
+            printf("MiniShell: %s: %d: no such job\n", commande[0], numeroJob);
+          }
+          else
+          {
+            //Si la commande est fg ou bg
+            if(strcmp(commande[0], "fg") == 0 || strcmp(commande[0], "bg") == 0)
+            {
+              //Si la commande est fg, il faut placer le job au premier plan
+              if(strcmp(commande[0], "fg") == 0)
+              {
+                numJobCommandeForeground = numeroJob;
+              }
+
+              //Si la commande est bg, il faut contrôler que le job à réveiller ne le soit pas déjà
+              //Si il l'est déjà, on averti l'utilisateur
+              if(strcmp(commande[0], "bg") == 0 && job->etatJob == RUNNING)
+              {
+                printf("MiniShell: %s: job %d already in background\n", commande[0], numeroJob);
+              }
+              //Réveil des processus endormis du job
+              else
+              {
+                job->etatJob = RUNNING;
+
+                struct elementListeInt *ElementParcoursPidsJob = job->listePIDsJob->tete;
+
+                while (ElementParcoursPidsJob != NULL)
+                {
+                  //Envoi du signal au processus via la fonction kill
+                  if(kill(ElementParcoursPidsJob->valeur, SIGCONT) == -1) {
+                    perror("kill");
+                    fflush(stdout);
+                  }
+
+                  ElementParcoursPidsJob = ElementParcoursPidsJob->suivant;
+                }
+              }
+            }
+            //Commande de mise en pause d'un job
+            //Cette commande doit être utilisée avec un et un seul paramètre (le numéro du job)
+            else if(strcmp(commande[0], "stop") == 0)
+            {
+              //Cas dans lequel le job est déjà en pause, on averti l'utilisateur
+              if(job->etatJob == STOPPED)
+              {
+                printf("MiniShell: %s: job %d already stopped\n", commande[0], numeroJob);
+              }
+              //Mise en pause de chacun des processus du job
+              else
+              {
+                job->etatJob = STOPPED;
+
+                struct elementListeInt *ElementParcoursPidsJob = job->listePIDsJob->tete;
+
+                while (ElementParcoursPidsJob != NULL)
+                {
+                  //Envoi du signal au processus via la fonction kill
+                  if(kill(ElementParcoursPidsJob->valeur, SIGTSTP) == -1) {
+                    perror("kill");
+                    fflush(stdout);
+                  }
+
+                  ElementParcoursPidsJob = ElementParcoursPidsJob->suivant;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   return retour;
