@@ -1,4 +1,5 @@
 #include "traiter_cmd.h"
+#include "fonctions_utiles.h"
 
 //Variables externes du MiniShell
 extern int estCommandeForegroundEnCours;
@@ -47,33 +48,6 @@ retoursTraitementCommande executer_commande_simple(char **commande, int fdIn, in
   }
 
   return retour;
-}
-
-int verification_permissions_fichier(char* fichier) {
-  int permissions;
-  int fd[2], pidFils;
-  pipe(fd);
-  char sortie[3];
-  char* commande[5] = {"stat","-c","%a",fichier,NULL};
-  if((pidFils = Fork()) == 0) {
-    close(fd[0]);
-    Dup2(fd[1], 1);
-    Dup2(fd[1], 2);
-    close(fd[1]);
-    execvp(commande[0],commande);
-    exit(0);
-  } else {
-    close(fd[1]);
-    read(fd[0], &sortie, 3);
-    close(fd[0]);
-    if(sortie[0] == 's') {
-      return -1;
-    } else {
-      sscanf(sortie, "%d", &permissions);
-    }
-    Waitpid(pidFils, NULL, 0);
-  }
-  return permissions;
 }
 
 retoursTraitementCommande executer_commande_interne(char **commande)
@@ -281,14 +255,14 @@ char* getChaineCommandeComplete(struct cmdline *l)
     retour = realloc(retour, (strlen(" ") + longueurRetour + 1) * sizeof(char));
     strcat(retour, " ");
     longueurRetour = longueurRetour + strlen(" ");
-    
+
     retour = realloc(retour, (strlen(l->seq[0][j]) + longueurRetour + 1) * sizeof(char));
     strcat(retour, l->seq[0][j]);
     longueurRetour = longueurRetour + strlen(l->seq[0][j]);
 
     j = j + 1;
   }
-  
+
 
   //Si il y a une redirection de l'entrée,
   if(l->in != NULL) {
