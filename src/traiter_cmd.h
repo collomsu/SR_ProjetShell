@@ -8,7 +8,9 @@
 #include "errno.h"
 #include "readcmd.h"
 #include "csapp.h"
+#include "fonctions_utiles.h"
 #include "listeInt.h"
+#include "listeJobs.h"
 #include "variablesExternes.h"
 
 //Enum utilisée pour gérer le retour du traitement de commandes
@@ -23,10 +25,10 @@ typedef enum {
 } retoursTraitementCommande;
 
 int verification_permissions_fichier(char* fichier);
-retoursTraitementCommande traiter_commande(struct cmdline *l);
+retoursTraitementCommande traiter_commande(struct cmdline *l, int numeroJobCommande);
 retoursTraitementCommande executer_commande_simple(char **commande, int fdIn, int fdOut);
 retoursTraitementCommande executer_commande_interne(char **commande);
-retoursTraitementCommande executer_commande_pipe(struct cmdline *l);
+retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int numeroJobCommande);
 retoursTraitementCommande execvp_correct(int retourLancementCommande, char **commande);
 
 //Fonction permettant d'afficher à l'écran une commande passée en paramètre

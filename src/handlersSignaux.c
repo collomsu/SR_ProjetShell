@@ -2,8 +2,8 @@
 
 //Variables externes du MiniShell
 extern int finShell;
-extern int estCommandeForegroundEnCours;
-extern listeInt* pidsCommandeForeground;
+extern int numJobCommandeForeground;
+extern listeJobs* listeJobsShell;
 extern sigset_t structureDeSignaux;
 
 
@@ -72,20 +72,27 @@ void handler_SIGCHLD(int sig) {
 		//Variable permettant de savoir si le processus terminé était un processus background ou foreground
 		int etaitProcessusTermineForeground = 0;
 
-		//Enfin, on retire de la liste des PID de processus en foreground le pid du processus qui vient de se terminer
-		if(SupprimerElementListeInt(pidsCommandeForeground, pidFilsTermine) == 0)
+		//Enfin, on retire de la liste des PID de processus le pid du processus qui vient de se terminer
+		//On cherche à quel job appartenait le processus terminé
+		struct elementListeJobs *ElementParcoursListeJobs = listeJobsShell->tete;
+		while(SupprimerElementListeInt(ElementParcoursListeJobs->listePIDsJob, pidFilsTermine) == -1 && ElementParcoursListeJobs != NULL)
+		{
+			ElementParcoursListeJobs = ElementParcoursListeJobs->suivant;
+		}
+
+		if(ElementParcoursListeJobs->numeroJob == numJobCommandeForeground)
 		{
 			etaitProcessusTermineForeground = 1;
 		}
 
-		if(EstListeIntVide(pidsCommandeForeground))
+		if(EstListeIntVide(ElementParcoursListeJobs->listePIDsJob))
 		{
-			estCommandeForegroundEnCours = 0;
+			numJobCommandeForeground = -1;
 		}
 
 		//Si il n'y a pas de processus en foreground et que le processus terminé était en background (il a pu perturber l'affichage)
 		//->affichage à l'utilisateur que le MiniShell est disponible
-		if(estCommandeForegroundEnCours == 0 && etaitProcessusTermineForeground == 0)
+		if(numJobCommandeForeground == -1 && etaitProcessusTermineForeground == 0)
 		{
 			printf("shell> ");
 			fflush(stdout);
@@ -107,17 +114,17 @@ void handler_SIGINT(int sig) {
 	//Masquage des signaux contenus dans la structure de données
 	Sigprocmask(SIG_BLOCK, &structureDeSignaux, NULL);
 
-	struct elementListeInt *ElementParcoursPidsProcessusForeground = pidsCommandeForeground->tete;
+	struct elementListeInt *ElementParcoursPidsJobForeground = GetElementListeJobsByNumero(listeJobsShell, numeroJobCommande)->listePIDsJob->tete;
 
-	while (ElementParcoursPidsProcessusForeground != NULL)
+	while (ElementParcoursPidsJobForeground != NULL)
 	{
 		//Envoi du signal au processus via la fonction kill
-		if(kill(ElementParcoursPidsProcessusForeground->valeur, SIGINT) == -1) {
+		if(kill(ElementParcoursPidsJobForeground->valeur, SIGINT) == -1) {
 			perror("kill");
 			fflush(stdout);
 		}
 
-		ElementParcoursPidsProcessusForeground = ElementParcoursPidsProcessusForeground->suivant;
+		ElementParcoursPidsJobForeground = ElementParcoursPidsJobForeground->suivant;
 	}
 
 	//On imprime un retour à la ligne et "shell> " (pour la propreté de l'affichage)
@@ -138,17 +145,17 @@ void handler_SIGTSTP(int sig) {
 	//Masquage des signaux contenus dans la structure de données
 	Sigprocmask(SIG_BLOCK, &structureDeSignaux, NULL);
 
-	struct elementListeInt *ElementParcoursPidsProcessusForeground = pidsCommandeForeground->tete;
+	struct elementListeInt *ElementParcoursPidsJobForeground = GetElementListeJobsByNumero(listeJobsShell, numeroJobCommande)->listePIDsJob->tete;
 
-	while (ElementParcoursPidsProcessusForeground != NULL)
+	while (ElementParcoursPidsJobForeground != NULL)
 	{
 		//Envoi du signal au processus via la fonction kill
-		if(kill(ElementParcoursPidsProcessusForeground->valeur, SIGTSTP) == -1) {
+		if(kill(ElementParcoursPidsJobForeground->valeur, SIGTSTP) == -1) {
 			perror("kill");
 			fflush(stdout);
 		}
 
-		ElementParcoursPidsProcessusForeground = ElementParcoursPidsProcessusForeground->suivant;
+		ElementParcoursPidsJobForeground = ElementParcoursPidsJobForeground->suivant;
 	}
 
 	//On imprime un retour à la ligne et "shell> " (pour la propreté de l'affichage)
@@ -159,6 +166,7 @@ void handler_SIGTSTP(int sig) {
 	//Démasquage des signaux contenus dans la structure de données
 	Sigprocmask(SIG_UNBLOCK, &structureDeSignaux, NULL);
 }
+
 
 //-2) Fonctions de mise en place des handlers
 
@@ -175,6 +183,7 @@ void setup_handler_SIGTSTP() {
 }
 
 //-3) Fonction d'initialisation d'une structure de données de signaux
+
 void setup_masque_signaux() {
 	Sigemptyset(&structureDeSignaux);
 	Sigaddset(&structureDeSignaux, SIGINT);

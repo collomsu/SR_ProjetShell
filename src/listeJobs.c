@@ -17,7 +17,6 @@ struct elementListeJobs* NouvelElementListeJobs(void)
 {
    struct elementListeJobs* nouvelElement = malloc(sizeof(struct elementListeJobs));
 
-   nouvelElement->numeroJob = 0;
    nouvelElement->commandeLancementJob = NULL;
    nouvelElement->etatJob = NON_DEFINI;
    nouvelElement->suivant = NULL;
