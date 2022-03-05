@@ -190,6 +190,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
   int pidFilsCree = 0;
   int i = 0;
   int fdIn = 0, fdOut = 1;
+  int copieStdin = dup(0), copieStdout = dup(1);
   int fdAFermerPere = 0; //fd qui a été ouvert pour le fils précédent (si aEteOuvertTuyauPrecedent == 1) à fermer chez le père une fois que le fils actuel sera créé
   int fd[2];
   int aEteOuvertTuyau, aEteOuvertTuyauPrecedent = 0;
@@ -205,6 +206,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
   while (l->seq[i] != NULL)
   {
     aEteOuvertTuyau = 0;
+    fdOut = 1;
 
     //Si le fils actuellement créé a comme sortie un pipe
     if(l->seq[i + 1] != NULL)
@@ -342,26 +344,38 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
         }
       }
 
-      //Si il n'y a pas eu un problème avec les redirections de fichiers
+      //Si il n'y a pas eu de problème avec les redirections de fichiers
       if(retour != ERREUR_REDIRECTION_FICHIER)
       {
-        //Si le fils actuellement créé a comme sortie un pipe
+        //Si la commande a comme sortie un pipe
         if(aEteOuvertTuyau == 1)
         {
           fdOut = fd[1];
-          close(fd[0]);
         }
 
         retour = executer_commande_simple(l->seq[i], fdIn, fdOut);
+
+        //Préparation de l'entrée pour la prochaine commande.
+        if(aEteOuvertTuyau == 1)
+        {
+          close(fd[1]);
+
+          fdIn = fd[0];
+          fdAFermerPere = fdIn;
+        }
+
+        //On replace les fd correctement
+        Dup2(copieStdin, 0);
+        Dup2(copieStdout, 1);
       }
     }
 
     i = i + 1;
   }
 
-  //On replace les fd correctement
-  Dup2(0, 0);
-  Dup2(1, 1);
+  //On efface nos copies de stdout et stdin
+  close(copieStdin);
+  close(copieStdout);
 
   return retour;
 }
