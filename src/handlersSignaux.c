@@ -4,11 +4,19 @@
 extern int finShell;
 extern int estCommandeForegroundEnCours;
 extern listeInt* pidsCommandeForeground;
+extern sigset_t structureDeSignaux;
 
 
 //-1) Handlers de signaux
 
 void handler_SIGCHLD(int sig) {
+
+	//Initialisation de la structure de données des signaux
+	setup_masque_signaux();
+
+	//Masquage des signaux contenus dans la structure de données
+	Sigprocmask(SIG_BLOCK, &structureDeSignaux, NULL);
+
 	//Récupération du PID du processus fils terminé et de son retour
 	int statutFinProcessusFilsTermine;
 
@@ -85,11 +93,20 @@ void handler_SIGCHLD(int sig) {
 		//On n'effectue cet affichage que lorsque le processus terminé était en background pour éviter d'afficher "shell> "
 		//plusieurs fois de suite à l'utilisateur (le message est affiché à la fin de chaque processus foreground, voir main())
 	}
+
+	//Démasquage des signaux contenus dans la structure de données
+	Sigprocmask(SIG_UNBLOCK, &structureDeSignaux, NULL);
 }
 
 void handler_SIGINT(int sig) {
 	//On envoie à chaque processus en cours d'exécution au premier plan le signal SIGINT
-	
+
+	//Initialisation de la structure de données des signaux
+	setup_masque_signaux();
+
+	//Masquage des signaux contenus dans la structure de données
+	Sigprocmask(SIG_BLOCK, &structureDeSignaux, NULL);
+
 	struct elementListeInt *ElementParcoursPidsProcessusForeground = pidsCommandeForeground->tete;
 
 	while (ElementParcoursPidsProcessusForeground != NULL)
@@ -107,11 +124,20 @@ void handler_SIGINT(int sig) {
 	printf("\n");
 	printf("shell> ");
 	fflush(stdout);
+
+	//Démasquage des signaux contenus dans la structure de données
+	Sigprocmask(SIG_UNBLOCK, &structureDeSignaux, NULL);
 }
 
 void handler_SIGTSTP(int sig) {
 	//On envoie à chaque processus en cours d'exécution au premier plan le signal SIGTSTP
-	
+
+	//Initialisation de la structure de données des signaux
+	setup_masque_signaux();
+
+	//Masquage des signaux contenus dans la structure de données
+	Sigprocmask(SIG_BLOCK, &structureDeSignaux, NULL);
+
 	struct elementListeInt *ElementParcoursPidsProcessusForeground = pidsCommandeForeground->tete;
 
 	while (ElementParcoursPidsProcessusForeground != NULL)
@@ -129,9 +155,10 @@ void handler_SIGTSTP(int sig) {
 	printf("\n");
 	printf("shell> ");
 	fflush(stdout);
+
+	//Démasquage des signaux contenus dans la structure de données
+	Sigprocmask(SIG_UNBLOCK, &structureDeSignaux, NULL);
 }
-
-
 
 //-2) Fonctions de mise en place des handlers
 
@@ -145,4 +172,12 @@ void setup_handler_SIGINT() {
 
 void setup_handler_SIGTSTP() {
   Signal(SIGTSTP, handler_SIGTSTP);
+}
+
+//-3) Fonction d'initialisation d'une structure de données de signaux
+void setup_masque_signaux() {
+	Sigemptyset(&structureDeSignaux);
+	Sigaddset(&structureDeSignaux, SIGINT);
+	Sigaddset(&structureDeSignaux, SIGCHLD);
+	Sigaddset(&structureDeSignaux, SIGTSTP);
 }

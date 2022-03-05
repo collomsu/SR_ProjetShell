@@ -19,4 +19,7 @@ listeInt* pidsCommandeForeground;
 //Liste des jobs de notre MiniShell (composé d'un numéro, de la commande, un état, et d'un pointeur vers le prochain élément).
 listeJobs* listeJobsShell;
 
+//Structure de données permettant de désigner un ou plusieurs types de signaux.
+sigset_t structureDeSignaux;
+
 #endif
