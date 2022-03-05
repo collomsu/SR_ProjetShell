@@ -5,4 +5,6 @@
 # (permision 300)
 #
 cat < fichier_inexistant.txt
+touch fichier_sans_lecture.txt
+chmod 300 fichier_sans_lecture.txt
 cat < fichier_sans_lecture.txt
