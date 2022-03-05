@@ -3,6 +3,7 @@
 //Variables externes du MiniShell
 extern int estCommandeForegroundEnCours;
 extern listeInt* pidsCommandeForeground;
+extern listeJobs* listeJobsShell;
 
 retoursTraitementCommande traiter_commande(struct cmdline *l) {
   retoursTraitementCommande retour = NORMAL;
@@ -85,13 +86,29 @@ retoursTraitementCommande executer_commande_interne(char **commande)
     retour = FERMETURE_SHELL;
   } else if(strcmp(commande[0], "jobs") == 0) {
     retour = NORMAL;
-
+    if (!EstListeJobsVide(listeJobsShell)) {
+      char *etat;
+      switch (listeJobsShell->tete->etatJob) {
+        case RUNNING:
+          etat = "En cours d'exécution";
+          break;
+        case STOPPED:
+          etat = "Arrêté";
+          break;
+        case NON_DEFINI:
+          etat = "Non défini";
+          break;
+        default:
+          break;
+      }
+      printf("[%d]  %s  %s\n",listeJobsShell->tete->numeroJob, etat, listeJobsShell->tete->commandeLancementJob);
+    }
   } else if(strcmp(commande[0], "fg") == 0) {
     retour = NORMAL;
 
   } else if(strcmp(commande[0], "bg") == 0) {
     retour = NORMAL;
-    
+
   }
 
   return retour;
