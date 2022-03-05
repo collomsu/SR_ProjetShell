@@ -83,6 +83,15 @@ retoursTraitementCommande executer_commande_interne(char **commande)
   if(strcmp(commande[0], "exit") == 0 || strcmp(commande[0], "quit") == 0)
   {
     retour = FERMETURE_SHELL;
+  } else if(strcmp(commande[0], "jobs") == 0) {
+    retour = NORMAL;
+
+  } else if(strcmp(commande[0], "fg") == 0) {
+    retour = NORMAL;
+
+  } else if(strcmp(commande[0], "bg") == 0) {
+    retour = NORMAL;
+    
   }
 
   return retour;
@@ -108,7 +117,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
   while (l->seq[i] != NULL)
   {
     aEteOuvertTuyau = 0;
-    
+
     //Si le fils actuellement créé a comme sortie un pipe
     if(l->seq[i + 1] != NULL)
     {
@@ -166,7 +175,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
         fdOut = fd[1];
         close(fd[0]);
       }
-      
+
       exit(executer_commande_simple(l->seq[i], fdIn, fdOut));
     }
     else
