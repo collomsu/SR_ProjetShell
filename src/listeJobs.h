@@ -32,7 +32,7 @@ void DetruireElementListeJobsEtSaDescendance(struct elementListeJobs* elementLis
 
 void DetruireElementListeJobs(struct elementListeJobs *ElementADetruire);
 
-void AjouterElementListeJobs(listeJobs *laListe, char* commandeLancementJob, etatsJobs etatJob);
+int AjouterElementListeJobs(listeJobs *laListe, char* commandeLancementJob, etatsJobs etatJob);
 
 //Retourne 0 si l'état de l'élément a bien été modifié
 //Si l'élément à modifier n'était pas dans la liste, -1 est retourné

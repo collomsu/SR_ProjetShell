@@ -63,8 +63,9 @@ void DetruireElementListeJobs(struct elementListeJobs *ElementADetruire)
    ElementADetruire = NULL;
 }
 
-void AjouterElementListeJobs(listeJobs *laListe, char *commandeLancementJob, etatsJobs etatJob)
-  {
+int AjouterElementListeJobs(listeJobs *laListe, char *commandeLancementJob, etatsJobs etatJob)
+{
+  int numeroJobAJoute = -1;
   struct elementListeJobs *elementInsere = NouvelElementListeJobs();
 
   //Copie de la chaine de caractères de la commande
@@ -83,6 +84,8 @@ void AjouterElementListeJobs(listeJobs *laListe, char *commandeLancementJob, eta
     }
     element->suivant = elementInsere;
   }
+  numeroJobAJoute = elementInsere->numeroJob;
+  return numeroJobAJoute;
 }
 
 int ModifierEtatElementListeJobs(listeJobs *laListe, int numeroJob, etatsJobs nouvelEtatJob)
