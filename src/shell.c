@@ -15,6 +15,7 @@ extern int finShell;
 //Variables externes du MiniShell
 extern int estCommandeForegroundEnCours;
 extern listeInt* pidsCommandeForeground;
+extern listeJobs* listeJobsShell;
 
 
 
@@ -25,6 +26,8 @@ int main()
 	finShell = 0;
 	estCommandeForegroundEnCours = 0;
 	pidsCommandeForeground = NouvelleListeInt();
+	listeJobsShell = NouvelleListeJobs();
+
 
 	//Mise en place des handlers associés aux signaux SIGCHLD, SIGINT et SIGTSTP
 	setup_handler_SIGCHLD();
@@ -66,10 +69,11 @@ int main()
 					printf("error: %s\n", l->err);
 					fflush(stdout);
 				}
-				//Si pas d'erreur, traitement de la commande
+				//Si pas d'erreur, ajout d'un nouveau job à la liste et traitement de la commande
 				else
 				{
-					printf("\nCommande écrite: %s\n\n", getChaineCommandeComplete(l));
+					AjouterElementListeJobs(listeJobsShell, getChaineCommandeComplete(l), RUNNING);
+
 					retourCommande = traiter_commande(l);
 
 					if(retourCommande == FERMETURE_SHELL){

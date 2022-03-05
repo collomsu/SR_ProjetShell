@@ -64,11 +64,9 @@ void DetruireElementListeJobs(struct elementListeJobs *ElementADetruire)
    ElementADetruire = NULL;
 }
 
-void AjouterElementListeJobs(listeJobs *laListe, int numeroJob, char* commandeLancementJob, etatsJobs etatJob)
+void AjouterElementListeJobs(listeJobs *laListe, char* commandeLancementJob, etatsJobs etatJob)
 {
    struct elementListeJobs* elementInsere = NouvelElementListeJobs();
-
-   elementInsere->numeroJob = numeroJob;
 
    //Copie de la chaine de caractères de la commande
    elementInsere->commandeLancementJob = malloc((strlen(commandeLancementJob) + 1) * sizeof(char));
@@ -90,28 +88,21 @@ int ModifierEtatElementListeJobs(listeJobs *laListe, int numeroJob, etatsJobs no
 
    if(!EstListeJobsVide(laListe))
    {
-      struct elementListeJobs *ElementAModifier = NULL;
+      struct elementListeJobs *ElementAModifier = laListe->tete;
 
-      if(laListe->tete->numeroJob == numeroJob)
+      int indexElementParcouru = 1;
+      
+      while(retour == -1 && ElementAModifier != NULL)
       {
-         retour = 0;
-      }
-      else
-      {
-         struct elementListeJobs *elementParcoursListe = laListe->tete;
-         
-         while(retour == -1 && elementParcoursListe->suivant != NULL)
+         //Si on a trouvé notre élément
+         if(indexElementParcouru == numeroJob)
          {
-            //Si on a trouvé notre élément
-            if(elementParcoursListe->suivant->numeroJob == numeroJob)
-            {
-               ElementAModifier = elementParcoursListe->suivant;
-               retour = 0;
-            }
-            else
-            {
-               elementParcoursListe = elementParcoursListe->suivant;
-            }
+            retour = 0;
+         }
+         else
+         {
+            ElementAModifier = ElementAModifier->suivant;
+            indexElementParcouru = indexElementParcouru + 1;
          }
       }
 
@@ -130,9 +121,10 @@ int SupprimerElementListeJobs(listeJobs *laListe, int numeroJob)
 
    if(!EstListeJobsVide(laListe))
    {
-      struct elementListeJobs *ElementADetruire = NULL;
+      struct elementListeJobs *ElementADetruire = laListe->tete;
 
-      if(laListe->tete->numeroJob == numeroJob)
+      //Suppression de la tête si le job à supprimé est le numéro 1
+      if(numeroJob == 1)
       {
          ElementADetruire = laListe->tete;
          laListe->tete = laListe->tete->suivant;
@@ -141,11 +133,12 @@ int SupprimerElementListeJobs(listeJobs *laListe, int numeroJob)
       else
       {
          struct elementListeJobs *elementParcoursListe = laListe->tete;
-         
-         while(retour == -1 && elementParcoursListe->suivant != NULL)
+         int indexElementParcouruSuivant = 2;
+
+         while(retour == -1 && ElementADetruire->suivant != NULL)
          {
             //Si on a trouvé notre élément
-            if(elementParcoursListe->suivant->numeroJob == numeroJob)
+            if(indexElementParcouruSuivant == numeroJob)
             {
                ElementADetruire = elementParcoursListe->suivant;
                elementParcoursListe->suivant = elementParcoursListe->suivant->suivant;
@@ -155,6 +148,7 @@ int SupprimerElementListeJobs(listeJobs *laListe, int numeroJob)
             {
                elementParcoursListe = elementParcoursListe->suivant;
             }
+            
          }
       }
 
@@ -178,28 +172,21 @@ int getPointeurCommandeLancementJobByNumeroJob(listeJobs *laListe, int numeroJob
 
    if(!EstListeJobsVide(laListe))
    {
-      struct elementListeJobs *ElementCherche = NULL;
+      struct elementListeJobs *ElementCherche = laListe->tete;
 
-      if(laListe->tete->numeroJob == numeroJob)
+      int indexElementParcouru = 1;
+      
+      while(retour == -1 && ElementCherche != NULL)
       {
-         retour = 0;
-      }
-      else
-      {
-         struct elementListeJobs *elementParcoursListe = laListe->tete;
-         
-         while(retour == -1 && elementParcoursListe->suivant != NULL)
+         //Si on a trouvé notre élément
+         if(indexElementParcouru == numeroJob)
          {
-            //Si on a trouvé notre élément
-            if(elementParcoursListe->suivant->numeroJob == numeroJob)
-            {
-               ElementCherche = elementParcoursListe->suivant;
-               retour = 0;
-            }
-            else
-            {
-               elementParcoursListe = elementParcoursListe->suivant;
-            }
+            retour = 0;
+         }
+         else
+         {
+            ElementCherche = ElementCherche->suivant;
+            indexElementParcouru = indexElementParcouru + 1;
          }
       }
 
