@@ -68,7 +68,7 @@ void handler_SIGCHLD(int sig) {
 		//Enfin, on retire de la liste des PID de processus le pid du processus qui vient de se terminer
 		//On cherche à quel job appartenait le processus terminé
 		struct elementListeJobs *ElementParcoursListeJobs = listeJobsShell->tete;
-		while(SupprimerElementListeInt(ElementParcoursListeJobs->listePIDsJob, pidFilsTermine) == -1 && ElementParcoursListeJobs != NULL)
+		while(SupprimerElementListeInt(ElementParcoursListeJobs->listePIDsJob, pidFilsTermine) == -1)
 		{
 			ElementParcoursListeJobs = ElementParcoursListeJobs->suivant;
 		}
@@ -101,24 +101,25 @@ void handler_SIGCHLD(int sig) {
 }
 
 void handler_SIGINT(int sig) {
-	//On envoie à chaque processus en cours d'exécution au premier plan le signal SIGINT
-
-	struct elementListeJobs* jobArrete = GetElementListeJobsByNumero(listeJobsShell, numJobCommandeForeground);
-
 	//Masquage des signaux contenus dans la structure de données
 	Sigprocmask(SIG_BLOCK, &structureDeSignaux, NULL);
 
-	struct elementListeInt *ElementParcoursPidsJobForeground = jobArrete->listePIDsJob->tete;
-
-	while (ElementParcoursPidsJobForeground != NULL)
+	//On envoie à chaque processus en cours d'exécution au premier plan le signal SIGINT
+	if(numJobCommandeForeground != -1)
 	{
-		//Envoi du signal au processus via la fonction kill
-		if(kill(ElementParcoursPidsJobForeground->valeur, SIGINT) == -1) {
-			perror("kill");
-			fflush(stdout);
-		}
+		struct elementListeJobs* jobArrete = GetElementListeJobsByNumero(listeJobsShell, numJobCommandeForeground);
+		struct elementListeInt *ElementParcoursPidsJobForeground = jobArrete->listePIDsJob->tete;
 
-		ElementParcoursPidsJobForeground = ElementParcoursPidsJobForeground->suivant;
+		while (ElementParcoursPidsJobForeground != NULL)
+		{
+			//Envoi du signal au processus via la fonction kill
+			if(kill(ElementParcoursPidsJobForeground->valeur, SIGINT) == -1) {
+				perror("kill");
+				fflush(stdout);
+			}
+
+			ElementParcoursPidsJobForeground = ElementParcoursPidsJobForeground->suivant;
+		}
 	}
 
 	//On imprime un retour à la ligne et "shell> " (pour la propreté de l'affichage)
@@ -131,29 +132,30 @@ void handler_SIGINT(int sig) {
 }
 
 void handler_SIGTSTP(int sig) {
-	//On envoie à chaque processus en cours d'exécution au premier plan le signal SIGTSTP
-
-	struct elementListeJobs* jobMisEnPause = GetElementListeJobsByNumero(listeJobsShell, numJobCommandeForeground);
-
-	//On indique dans la liste des jobs que le processus qui était au premier plan passe en background
-	jobMisEnPause->etatJob = STOPPED;
-
 	//Masquage des signaux contenus dans la structure de données
 	Sigprocmask(SIG_BLOCK, &structureDeSignaux, NULL);
 
-	struct elementListeInt *ElementParcoursPidsJobForeground = jobMisEnPause->listePIDsJob->tete;
-
-	while (ElementParcoursPidsJobForeground != NULL)
+	//On envoie à chaque processus en cours d'exécution au premier plan le signal SIGTSTP
+	if(numJobCommandeForeground != -1)
 	{
-		//Envoi du signal au processus via la fonction kill
-		if(kill(ElementParcoursPidsJobForeground->valeur, SIGTSTP) == -1) {
-			perror("kill");
-			fflush(stdout);
+		struct elementListeJobs* jobMisEnPause = GetElementListeJobsByNumero(listeJobsShell, numJobCommandeForeground);
+
+		//On indique dans la liste des jobs que le processus qui était au premier plan passe en background
+		jobMisEnPause->etatJob = STOPPED;
+
+		struct elementListeInt *ElementParcoursPidsJobForeground = jobMisEnPause->listePIDsJob->tete;
+
+		while (ElementParcoursPidsJobForeground != NULL)
+		{
+			//Envoi du signal au processus via la fonction kill
+			if(kill(ElementParcoursPidsJobForeground->valeur, SIGTSTP) == -1) {
+				perror("kill");
+				fflush(stdout);
+			}
+
+			ElementParcoursPidsJobForeground = ElementParcoursPidsJobForeground->suivant;
 		}
-
-		ElementParcoursPidsJobForeground = ElementParcoursPidsJobForeground->suivant;
 	}
-
 
 	//On imprime un retour à la ligne et "shell> " (pour la propreté de l'affichage)
 	printf("\n");

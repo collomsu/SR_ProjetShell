@@ -67,7 +67,7 @@ retoursTraitementCommande executer_commande_interne(char **commande)
 
       while(ElementParcoursListeJobs != NULL)
       {
-        switch (listeJobsShell->tete->etatJob) {
+        switch (ElementParcoursListeJobs->etatJob) {
           case RUNNING:
             etatJob = "Running";
             break;
@@ -80,12 +80,14 @@ retoursTraitementCommande executer_commande_interne(char **commande)
           default:
             break;
         }
-        printf("[%d]  %s  %s\n",listeJobsShell->tete->numeroJob, etatJob, listeJobsShell->tete->commandeLancementJob);
+        printf("[%d]  %s  %s\n",ElementParcoursListeJobs->numeroJob, etatJob, ElementParcoursListeJobs->commandeLancementJob);
+
+        ElementParcoursListeJobs = ElementParcoursListeJobs->suivant;
       }
     }
     else
     {
-      //Commandes de gestions des jobs
+      //Commandes de gestion des jobs
       //Ces commandes doivent être utilisées avec un et un seul paramètre (le numéro du job)
       if(strcmp(commande[0], "fg") == 0 || strcmp(commande[0], "bg") == 0 || strcmp(commande[0], "stop") == 0)
       {
@@ -195,7 +197,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int numeroJo
 
   int permissions;
 
-  struct elementListeJobs* listeJobsCommande = GetElementListeJobsByNumero(listeJobsShell, numeroJobCommande);
+  struct elementListeJobs* jobCommande = GetElementListeJobsByNumero(listeJobsShell, numeroJobCommande);
 
   while (l->seq[i] != NULL)
   {
@@ -264,7 +266,7 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l, int numeroJo
     else
     {
       //Insertion du PID du fils créé dans la liste des PIDs du job de la commande
-      AjouterElementListeInt(listePidsCommande, pidFilsCree);
+      AjouterElementListeInt(jobCommande->listePIDsJob, pidFilsCree);
 
       if(aEteOuvertTuyauPrecedent == 1)
       {

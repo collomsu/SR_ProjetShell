@@ -17,6 +17,7 @@ struct elementListeJobs* NouvelElementListeJobs(void)
 {
    struct elementListeJobs* nouvelElement = malloc(sizeof(struct elementListeJobs));
    nouvelElement->numeroJob = 0;
+   nouvelElement->listePIDsJob = NULL;
    nouvelElement->commandeLancementJob = NULL;
    nouvelElement->etatJob = NON_DEFINI;
    nouvelElement->suivant = NULL;
@@ -54,6 +55,11 @@ void DetruireElementListeJobsEtSaDescendance(struct elementListeJobs* ElementLis
 
 void DetruireElementListeJobs(struct elementListeJobs *ElementADetruire)
 {
+   if(ElementADetruire->listePIDsJob != NULL)
+   {
+      DetruireListeInt(ElementADetruire->listePIDsJob);
+   }
+
    if(ElementADetruire->commandeLancementJob != NULL)
    {
       free(ElementADetruire->commandeLancementJob);
@@ -65,14 +71,11 @@ void DetruireElementListeJobs(struct elementListeJobs *ElementADetruire)
 
 int AjouterElementListeJobs(listeJobs *laListe, char *commandeLancementJob, etatsJobs etatJob)
 {
-  int numeroJobAJoute = -1;
   struct elementListeJobs *elementInsere = NouvelElementListeJobs();
 
-  //Copie de la chaine de caractères de la commande
-  elementInsere->commandeLancementJob = malloc((strlen(commandeLancementJob) + 1) * sizeof(char));
-  strcpy(elementInsere->commandeLancementJob, commandeLancementJob);
 
-  elementInsere->etatJob = etatJob;
+  int numeroJobAJoute = -1;
+
   //Si aucun élément dans la liste, on ajoute en tete avece comme numéro de job le numéro 1
   if(laListe->tete == NULL) {
     elementInsere->numeroJob = 1;
@@ -87,6 +90,17 @@ int AjouterElementListeJobs(listeJobs *laListe, char *commandeLancementJob, etat
     }
     element->suivant = elementInsere;
   }
+
+  //Création d'une liste de processus vide
+  elementInsere->listePIDsJob = NouvelleListeInt();
+
+  //Copie de la chaine de caractères de la commande
+  elementInsere->commandeLancementJob = malloc((strlen(commandeLancementJob) + 1) * sizeof(char));
+  strcpy(elementInsere->commandeLancementJob, commandeLancementJob);
+
+  elementInsere->etatJob = etatJob;
+
+  
   numeroJobAJoute = elementInsere->numeroJob;
   return numeroJobAJoute;
 }
@@ -131,9 +145,8 @@ int SupprimerElementListeJobs(listeJobs *laListe, int numeroJob)
    if(!EstListeJobsVide(laListe))
    {
       struct elementListeJobs *ElementADetruire = laListe->tete;
-      int indexElementParcouruSuivant = laListe->tete->numeroJob;
       //Suppression de la tête si le job à supprimé est égal au numéro de la tête
-      if(numeroJob == indexElementParcouruSuivant)
+      if(laListe->tete->numeroJob == numeroJob)
       {
          ElementADetruire = laListe->tete;
          laListe->tete = laListe->tete->suivant;
@@ -143,10 +156,12 @@ int SupprimerElementListeJobs(listeJobs *laListe, int numeroJob)
       else
       {
          struct elementListeJobs *elementParcoursListe = laListe->tete;
+         int indexElementParcouruSuivant;
 
          while(retour == -1 && ElementADetruire->suivant != NULL)
          {
-           indexElementParcouruSuivant = elementParcoursListe->numeroJob;
+            indexElementParcouruSuivant = elementParcoursListe->suivant->numeroJob;
+
             //Si on a trouvé notre élément
             if(indexElementParcouruSuivant == numeroJob)
             {
@@ -157,9 +172,7 @@ int SupprimerElementListeJobs(listeJobs *laListe, int numeroJob)
             else
             {
                elementParcoursListe = elementParcoursListe->suivant;
-
             }
-            indexElementParcouruSuivant++;
          }
       }
 
@@ -218,7 +231,7 @@ int numeroDernierJob(listeJobs *laListe) {
   if(laListe->tete == NULL) {
     numero = 0;
   //Sinon on cherche le numéro du dernier job de la liste
-  } else {
+  } else {
     suivant = laListe->tete;
     while(suivant != NULL) {
       numero = suivant->numeroJob;
