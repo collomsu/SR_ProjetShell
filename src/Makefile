@@ -12,8 +12,8 @@ VPATH=src/
 #LIBS += -lsocket -lnsl -lrt
 LIBS+=-lpthread
 
-INCLUDE = readcmd.h csapp.h traiter_cmd.h listeInt.h variablesExternes.h handlersSignaux.h
-OBJS = readcmd.o csapp.o traiter_cmd.o listeInt.o handlersSignaux.o
+INCLUDE = readcmd.h csapp.h traiter_cmd.h listeInt.h variablesExternes.h handlersSignaux.h listeJobs.h
+OBJS = readcmd.o csapp.o traiter_cmd.o listeInt.o handlersSignaux.o listeJobs.o
 INCLDIR = -I.
 
 all: clean shell loop loop_100
