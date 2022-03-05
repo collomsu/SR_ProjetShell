@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include "listeInt.h"
 
 typedef enum {
     RUNNING,
@@ -14,6 +15,7 @@ typedef enum {
 
 struct elementListeJobs{
     int numeroJob;
+    listeInt *listePIDsJob;
     char* commandeLancementJob;
     etatsJobs etatJob;
     struct elementListeJobs *suivant;

@@ -41,11 +41,6 @@ int main()
 	struct cmdline *l;
 	retoursTraitementCommande retourCommande;
 
-	//Affichage à l'utilisateur que le MiniShell est disponible
-	printf("shell> ");
-	fflush(stdout);
-	//Cet affichage est effectué à chaque lancement du MiniShell + à chaque fin de processus foreground
-
 	//Boucle dont on sort lorsque l'on quitte le Shell
 	while (finShell == 0)
 	{
@@ -57,6 +52,11 @@ int main()
 
 		if(finShell == 0)
 		{
+			//Affichage à l'utilisateur que le MiniShell est disponible
+			printf("shell> ");
+			fflush(stdout);
+			//Cet affichage est effectué à chaque lancement du MiniShell + à chaque fin de processus foreground
+
 			//lecture et analyse (lexicale / syntaxique) de la commande
 			l = readcmd();
 
@@ -76,12 +76,16 @@ int main()
 				//Si pas d'erreur, ajout d'un nouveau job à la liste et traitement de la commande
 				else
 				{
-					int numeroJobCommande = AjouterElementListeJobs(listeJobsShell, getChaineCommandeComplete(l), RUNNING);
+					//Si la commande n'est pas vide
+					if(l->seq[0] != NULL)
+					{
+						int numeroJobCommande = AjouterElementListeJobs(listeJobsShell, getChaineCommandeComplete(l), RUNNING);
+					
+						retourCommande = traiter_commande(l, numeroJobCommande);
 
-					retourCommande = traiter_commande(l, numeroJobCommande);
-
-					if(retourCommande == FERMETURE_SHELL){
-						finShell = 1;
+						if(retourCommande == FERMETURE_SHELL){
+							finShell = 1;
+						}
 					}
 				}
 			}
