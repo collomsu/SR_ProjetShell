@@ -1,0 +1,8 @@
+#
+# test_erreur_fichier_entree.txt - Exécute deux commande  : cat avec une redirection de fichier en entrée.
+# 1ère commande : Cependant le fichier en entrée n'existe pas.
+# 2ème commande : Vous ne disposez pas des droits recquis pour effetuer une lecture sur le fichier.
+# (permision 300)
+#
+cat < fichier_inexistant.txt
+cat < fichier_sans_lecture.txt

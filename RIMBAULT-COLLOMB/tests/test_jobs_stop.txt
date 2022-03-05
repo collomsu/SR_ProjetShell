@@ -1,0 +1,6 @@
+#
+# test_jobs_stop.txt - Exécute un programme de boucle infini dont le processus est exécuté en arrière-plan.
+# Il est ensuite arrêté avec la commande stop.
+#
+./src/loop &
+stop 1

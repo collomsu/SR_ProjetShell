@@ -1,0 +1,6 @@
+#
+# test_signal_sigint.txt -  Exécuter un programme de boucle infini, et envoie au
+# processus créer le signal SIGINT pour tué le processus.
+#
+./src/loop
+INT

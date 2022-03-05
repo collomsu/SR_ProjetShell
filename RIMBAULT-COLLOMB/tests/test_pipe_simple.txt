@@ -1,0 +1,4 @@
+#
+# test_pipe_simple.txt - Exécute deux commandes sans argument avec pipe
+#
+ls | wc

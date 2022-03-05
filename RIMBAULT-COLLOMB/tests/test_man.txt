@@ -1,0 +1,4 @@
+#
+# test_man.txt - Exécuter la commande man avec l'argument exec.
+#
+man exec

@@ -1,0 +1,6 @@
+#
+# test_erreur_fichier_sortie02.txt - Exécute une commande : ls avec une redirection de fichier en sortie.
+# Cependant vous ne disposez pas des droits recquis pour effectuer une écriture sur le fichier.
+# (permission 500)
+#
+ls > fichier_sans_ecriture.txt
