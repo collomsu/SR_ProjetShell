@@ -91,15 +91,6 @@ void handler_SIGCHLD(int sig) {
 			{
 				numJobCommandeForeground = -1;
 			}
-
-			//Si il n'y a pas de processus en foreground->affichage à l'utilisateur que le MiniShell est disponible
-			if(numJobCommandeForeground == -1)
-			{
-				printf("shell> ");
-				fflush(stdout);
-			}
-			//On n'effectue cet affichage que lorsque le processus terminé était en background pour éviter d'afficher "shell> "
-			//plusieurs fois de suite à l'utilisateur (le message est affiché à la fin de chaque processus foreground, voir main())
 		}
 	}
 

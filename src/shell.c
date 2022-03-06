@@ -53,7 +53,6 @@ int main()
 		if(finShell == 0)
 		{
 			//Affichage à l'utilisateur que le MiniShell est disponible
-			printf("\n");
 			printf("shell> ");
 			fflush(stdout);
 			//Cet affichage est effectué à chaque lancement du MiniShell + à chaque fin de processus foreground

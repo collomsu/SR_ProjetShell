@@ -119,7 +119,7 @@ retoursTraitementCommande executer_commande_interne(char **commande)
                 //Si la commande est fg, il faut placer le job au premier plan
                 if(strcmp(commande[0], "fg") == 0)
                 {
-                  numJobCommandeForeground = -1;
+                  numJobCommandeForeground = numeroJob;
                 }
 
                 //Si la commande est bg, il faut contrôler que le job à réveiller ne le soit pas déjà

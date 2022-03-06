@@ -4,4 +4,4 @@
 #
 ./src/loop &
 stop 1
-bg
+bg 1

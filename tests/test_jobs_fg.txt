@@ -3,4 +3,4 @@
 # Il est ensuite placer en exécution au premier plan avec la commande fg.
 #
 ./src/loop &
-fg
+fg 1
