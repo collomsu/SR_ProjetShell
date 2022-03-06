@@ -2,6 +2,8 @@ bg
 csapp.c
 csapp.h
 fichier
+fonctions_utiles.c
+fonctions_utiles.h
 handlersSignaux.c
 handlersSignaux.h
 listeInt.c
@@ -16,6 +18,7 @@ Makefile
 (old)aMettreDansLeHandler.c
 readcmd.c
 readcmd.h
+resultat
 shell
 shell.c
 test

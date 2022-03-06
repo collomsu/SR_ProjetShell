@@ -315,8 +315,6 @@ retoursTraitementCommande executer_commande_pipe(struct cmdline *l) {
 
           fdAFermerPere = fdIn;
         }
-
-        fdOut = 1;
       }
     }
     else

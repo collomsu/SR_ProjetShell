@@ -70,16 +70,20 @@ void handler_SIGCHLD(int sig) {
 			//Enfin, on retire de la liste des PID de processus le pid du processus qui vient de se terminer
 			//On cherche à quel job appartenait le processus terminé
 			struct elementListeJobs *ElementParcoursListeJobs = listeJobsShell->tete;
-			while(SupprimerElementListeInt(ElementParcoursListeJobs->listePIDsJob, pidFilsTermine) == -1)
+			while(ElementParcoursListeJobs != NULL && SupprimerElementListeInt(ElementParcoursListeJobs->listePIDsJob, pidFilsTermine) == -1)
 			{
 				ElementParcoursListeJobs = ElementParcoursListeJobs->suivant;
 			}
 
-			//Si la liste des PIDs du job dont l'un des processus vient de se terminer est vide, on supprime ce job
-			if(EstListeIntVide(ElementParcoursListeJobs->listePIDsJob))
+			if(ElementParcoursListeJobs != NULL)
 			{
-				SupprimerElementListeJobs(listeJobsShell, ElementParcoursListeJobs->numeroJob);
+				//Si la liste des PIDs du job dont l'un des processus vient de se terminer est vide, on supprime ce job
+				if(EstListeIntVide(ElementParcoursListeJobs->listePIDsJob))
+				{
+					SupprimerElementListeJobs(listeJobsShell, ElementParcoursListeJobs->numeroJob);
+				}
 			}
+			
 			
 			//Si dans la liste des jobs: le job qui, avant reception du SIGCHLD, était au premier plan n'existe plus
 			//->Mise à jour de la variable numJobCommandeForeground
